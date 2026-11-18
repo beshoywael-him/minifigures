@@ -432,6 +432,82 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
     c.restore();
   }
 
+
+  // ================= RAINFOREST EASTER EGGS (BIOGLOW season) =================
+  function frog(c, x, y, s) { // sits with bottom at y
+    c.save(); c.translate(x, y); c.lineJoin = "round"; c.lineWidth = s * .07; c.strokeStyle = NAVY;
+    c.beginPath(); c.ellipse(0, -s * .32, s * .55, s * .36, 0, 0, 7); c.fillStyle = "#4CC46A"; c.fill(); c.stroke();
+    [-1, 1].forEach(k => { c.beginPath(); c.ellipse(k * s * .42, -s * .04, s * .2, s * .1, 0, 0, 7); c.fillStyle = "#3BA857"; c.fill(); c.stroke(); });
+    [-1, 1].forEach(k => {
+      c.beginPath(); c.arc(k * s * .27, -s * .66, s * .19, 0, 7); c.fillStyle = "#4CC46A"; c.fill(); c.stroke();
+      c.beginPath(); c.arc(k * s * .27, -s * .66, s * .11, 0, 7); c.fillStyle = "#FFFFFF"; c.fill();
+      c.beginPath(); c.arc(k * s * .27 + s * .02, -s * .65, s * .06, 0, 7); c.fillStyle = NAVY; c.fill();
+      c.beginPath(); c.arc(k * s * .36, -s * .3, s * .07, 0, 7); c.fillStyle = "#FF8FA3"; c.fill();
+    });
+    c.beginPath(); c.arc(0, -s * .38, s * .2, .15 * Math.PI, .85 * Math.PI); c.lineWidth = s * .05; c.stroke();
+    c.restore();
+  }
+  function toucan(c, x, y, s) { // perched, feet at y, facing right
+    c.save(); c.translate(x, y); c.lineJoin = "round"; c.lineWidth = s * .06; c.strokeStyle = NAVY;
+    c.beginPath(); c.moveTo(-s * .15, -s * .1); c.lineTo(-s * .45, s * .05); c.lineTo(-s * .2, s * .02); c.closePath(); c.fillStyle = "#1E2433"; c.fill(); c.stroke();
+    c.beginPath(); c.ellipse(0, -s * .45, s * .3, s * .42, 0, 0, 7); c.fillStyle = "#1E2433"; c.fill(); c.stroke();
+    c.beginPath(); c.ellipse(s * .1, -s * .55, s * .16, s * .2, 0, 0, 7); c.fillStyle = "#FFF4D6"; c.fill();
+    c.beginPath(); c.moveTo(s * .2, -s * .72); c.bezierCurveTo(s * .55, -s * .82, s * .85, -s * .7, s * .9, -s * .58); c.bezierCurveTo(s * .7, -s * .5, s * .4, -s * .52, s * .2, -s * .56); c.closePath();
+    const g = c.createLinearGradient(s * .2, 0, s * .9, 0); g.addColorStop(0, "#FFC62E"); g.addColorStop(.65, "#FF8A00"); g.addColorStop(1, "#E8322B");
+    c.fillStyle = g; c.fill(); c.stroke();
+    c.beginPath(); c.arc(s * .08, -s * .7, s * .08, 0, 7); c.fillStyle = "#4FB2E8"; c.fill(); c.stroke();
+    c.beginPath(); c.arc(s * .09, -s * .7, s * .035, 0, 7); c.fillStyle = NAVY; c.fill();
+    [-.08, .08].forEach(k => { c.beginPath(); c.moveTo(k * s, -s * .05); c.lineTo(k * s, s * .05); c.lineWidth = s * .05; c.strokeStyle = "#FF8A00"; c.stroke(); });
+    c.restore();
+  }
+  function sloth(c, x, y, s) { // hangs: hands at y
+    c.save(); c.translate(x, y); c.lineJoin = "round"; c.lineCap = "round"; c.strokeStyle = NAVY;
+    [-1, 1].forEach(k => { c.beginPath(); c.moveTo(k * s * .18, 0); c.lineTo(k * s * .3, s * .5); c.lineWidth = s * .2; c.strokeStyle = "#9B7653"; c.stroke(); });
+    c.beginPath(); c.arc(0, s * .7, s * .36, 0, 7); c.fillStyle = "#A9825E"; c.fill(); c.lineWidth = s * .06; c.strokeStyle = NAVY; c.stroke();
+    c.beginPath(); c.ellipse(0, s * .74, s * .27, s * .2, 0, 0, 7); c.fillStyle = "#F1DFC5"; c.fill();
+    [-1, 1].forEach(k => {
+      c.beginPath(); c.ellipse(k * s * .13, s * .71, s * .1, s * .06, k * .5, 0, 7); c.fillStyle = "#5A3F2B"; c.fill();
+      c.beginPath(); c.arc(k * s * .13, s * .71, s * .03, 0, 7); c.fillStyle = "#FFFFFF"; c.fill();
+    });
+    c.beginPath(); c.ellipse(0, s * .8, s * .05, s * .035, 0, 0, 7); c.fillStyle = NAVY; c.fill();
+    c.beginPath(); c.arc(0, s * .82, s * .08, .2 * Math.PI, .8 * Math.PI); c.lineWidth = s * .035; c.stroke();
+    [-1, 1].forEach(k => { c.beginPath(); c.arc(k * s * .18, 0, s * .07, 0, 7); c.fillStyle = "#5A3F2B"; c.fill(); });
+    c.restore();
+  }
+  function butterfly(c, x, y, s, rot) { // blue morpho
+    c.save(); c.translate(x, y); c.rotate(rot); c.lineJoin = "round"; c.lineWidth = s * .07; c.strokeStyle = NAVY;
+    const g = c.createRadialGradient(0, 0, s * .1, 0, 0, s); g.addColorStop(0, "#7FE0FF"); g.addColorStop(1, "#1E6BE0");
+    [-1, 1].forEach(k => {
+      c.beginPath(); c.ellipse(k * s * .42, -s * .22, s * .42, s * .34, k * -.5, 0, 7); c.fillStyle = g; c.fill(); c.stroke();
+      c.beginPath(); c.ellipse(k * s * .3, s * .28, s * .26, s * .22, k * .6, 0, 7); c.fillStyle = g; c.fill(); c.stroke();
+    });
+    c.beginPath(); c.ellipse(0, 0, s * .07, s * .42, 0, 0, 7); c.fillStyle = NAVY; c.fill();
+    c.beginPath(); c.moveTo(0, -s * .38); c.quadraticCurveTo(-s * .1, -s * .6, -s * .22, -s * .62); c.moveTo(0, -s * .38); c.quadraticCurveTo(s * .1, -s * .6, s * .22, -s * .62); c.lineWidth = s * .04; c.stroke();
+    c.restore();
+  }
+  function monstera(c, x, y, s, rot, col) { // pointed rainforest leaf from its stem base at x,y
+    c.save(); c.translate(x, y); c.rotate(rot); c.lineJoin = "round"; c.lineCap = "round";
+    c.beginPath(); c.moveTo(0, s * .12); c.lineTo(0, 0); c.lineWidth = s * .06; c.strokeStyle = shade(col, -.35); c.stroke();
+    c.beginPath(); c.moveTo(0, 0);
+    c.bezierCurveTo(-s * .52, -s * .12, -s * .5, -s * .72, 0, -s);
+    c.bezierCurveTo(s * .5, -s * .72, s * .52, -s * .12, 0, 0); c.closePath();
+    c.fillStyle = col; c.fill(); c.lineWidth = s * .045; c.strokeStyle = NAVY; c.stroke();
+    c.strokeStyle = shade(col, -.3); c.lineWidth = s * .035;
+    c.beginPath(); c.moveTo(0, -s * .04); c.quadraticCurveTo(s * .04, -s * .5, 0, -s * .9); c.stroke();
+    [.28, .48, .68].forEach(t => [-1, 1].forEach(k => { c.beginPath(); c.moveTo(0, -s * t); c.quadraticCurveTo(k * s * .18, -s * (t + .06), k * s * .3, -s * (t + .16)); c.stroke(); }));
+    c.restore();
+  }
+  function paws(c, x, y, s, col) {
+    c.save(); c.fillStyle = col;
+    [[0, 0, -.3], [s * 1.3, -s * .5, -.1], [s * 2.6, 0, .15]].forEach(([dx, dy, r]) => {
+      c.save(); c.translate(x + dx, y + dy); c.rotate(r);
+      c.beginPath(); c.ellipse(0, s * .15, s * .3, s * .25, 0, 0, 7); c.fill();
+      [[-.3, -.2], [-.1, -.35], [.1, -.35], [.3, -.2]].forEach(([a, b]) => { c.beginPath(); c.arc(a * s, b * s, s * .1, 0, 7); c.fill(); });
+      c.restore();
+    });
+    c.restore();
+  }
+
   async function drawCard(canvas, { name, code, seed, theme, nameStyle }, photoImg) {
     const c = canvas.getContext("2d"), W = 720, H = 1080, R = rng(seed);
     const ti = Number.isInteger(theme) && theme >= 0 ? theme % THEMES.length : Math.floor(R() * THEMES.length);
@@ -451,7 +527,6 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
     const P = th.plates;
     plate(c, 18, 18, 50, 150, P[0]); plate(c, 18, 18, 170, 50, P[1]);
     plate(c, W - 68, 18, 50, 150, P[2]); plate(c, W - 188, 18, 170, 50, P[3]);
-    plate(c, 18, 560, 50, 130, P[3]); plate(c, W - 68, 520, 50, 130, P[0]);
 
     // name
     const ar = /[\u0600-\u06FF]/.test(name);
@@ -462,6 +537,11 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
 
     // photo in studded frame
     const fy = Math.max(tagY + 26, 270), fh = Math.max(420, Math.min(540, 868 - fy)), fw = Math.min(410, Math.round(fh * .8)), fx = (W - fw) / 2, b = 32;
+    // rainforest leaves peeking from behind the frame
+    const leafCol = ["#3FA76C", "#2E8B57", "#5CBF8A"];
+    monstera(c, fx + 18, fy + fh - 26, 96 + R() * 14, -1.05 - R() * .25, leafCol[Math.floor(R() * 3)]);
+    monstera(c, fx + 14, fy + fh - 34, 70 + R() * 10, -1.6 - R() * .2, leafCol[Math.floor(R() * 3)]);
+    monstera(c, fx + fw - 18, fy + fh - 30, 90 + R() * 14, 1.05 + R() * .25, leafCol[Math.floor(R() * 3)]);
     rr(c, fx, fy + 8, fw, fh, 30); c.fillStyle = shade(th.frame[1], -.28); c.fill();
     const fg = c.createLinearGradient(fx, fy, fx + fw, fy + fh); fg.addColorStop(0, th.frame[0]); fg.addColorStop(1, th.frame[1]);
     rr(c, fx, fy, fw, fh, 30); c.fillStyle = fg; c.fill();
@@ -481,20 +561,26 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
     const pwid = c.measureText("MINI FIGURE").width + 56;
     rr(c, W / 2 - pwid / 2, fy + fh - 30, pwid, 52, 26); c.fillStyle = NAVY; c.fill(); c.lineWidth = 4; c.strokeStyle = "#FFFFFF"; c.stroke();
     c.fillStyle = "#FFFFFF"; c.fillText("MINI FIGURE", W / 2, fy + fh + 6);
+    // a friend sitting on the frame
+    if (R() < .5) frog(c, fx + fw - 70, fy + 4, 58); else toucan(c, fx + 58, fy + 4, 70);
+    // sloth hanging from a corner piece (some cards)
+    if (R() < .6) { if (R() < .5) sloth(c, 43, 172, 78); else sloth(c, W - 43, 172, 78); }
 
 
     // side icons (narrow margins)
     const ic = th.icons;
-    const L = fx / 2, Rr = W - fx / 2, k = fh / 470;
-    const slots = [[L, fy + 40 * k, "brick"], [L + 10, fy + 175 * k, "star"], [L, fy + 300 * k, "mid"], [Rr, fy + 70 * k, "mid"], [Rr - 10, fy + 205 * k, "star"], [Rr, fy + 330 * k, "brick"], [L - 8, fy + 440 * k, "star"]];
+    const L = Math.max(70, fx / 2), Rr = Math.min(W - 70, W - fx / 2), k = fh / 470;
+    const slots = [[L, fy + 40 * k, "brick"], [L + 6, fy + 165 * k, "butterfly"], [L, fy + 285 * k, "mid"], [Rr, fy + 70 * k, "mid"], [Rr - 10, fy + 190 * k, "star"], [Rr, fy + 290 * k, "brick"]];
     slots.forEach(([x, y, kind]) => {
       x += (R() - .5) * 14; y += (R() - .5) * 18; const col = ic[Math.floor(R() * ic.length)];
-      if (kind === "brick") isoBrick(c, x, y, 17 + R() * 3, col);
+      if (kind === "butterfly") butterfly(c, x, y, 34, (R() - .5) * .6);
+      else if (kind === "brick") isoBrick(c, x, y, 17 + R() * 3, col);
       else if (kind === "star") star(c, x, y, 14 + R() * 5, th.star, (R() - .5) * .6);
       else if (R() < .5) gear(c, x, y, 30, col); else robot(c, x, y + 6, 40, col);
     });
 
     // footer
+    if (R() < .7) paws(c, 290 + R() * 40, 934, 17, shade(th.bands[3], -.22));
     logo(c, 38, 966, 58);
     c.font = '800 42px "Sora", sans-serif'; c.textAlign = "right"; c.direction = "ltr"; c.fillStyle = NAVY; c.fillText(code, W - 42, 1012);
     const cw = c.measureText(code).width;
