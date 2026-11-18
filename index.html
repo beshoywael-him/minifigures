@@ -126,7 +126,9 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
   <form class="panel" id="form" novalidate>
     <div class="field">
       <label class="lab" id="labName" for="name"><span class="num">1</span>Your full name</label>
-      <input type="text" id="name" maxlength="32" autocomplete="off" placeholder="e.g. Youssef Ahmed">
+      <input type="text" id="name" maxlength="60" autocomplete="off" autocapitalize="words" placeholder="e.g. Youssef Ahmed Hassan" aria-describedby="nameHelp nameErr">
+      <span class="hint" id="nameHelp">Your card will show your first two names.</span>
+      <span class="err" id="nameErr" role="alert"></span>
     </div>
     <div class="field">
       <span class="lab" id="labPhoto"><span class="num">2</span>Your photo</span>
@@ -411,7 +413,7 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const API = "https://script.google.com/macros/s/AKfycbyreHC5FMbctcoXF3_nD2PUGEOq9U088-Q5asrcz-w8es3uQEAv2KcwyM6Meht9aTB6/exec";
   const hasServer = true;
-  const state = { name: "", photo: null, code: "", row: 0, seed: 0, theme: -1, busy: false, saving: false, pendingSave: false };
+  const state = { name: "", cardName: "", photo: null, code: "", row: 0, seed: 0, theme: -1, busy: false, saving: false, pendingSave: false };
   const imgs = {};
 
   const THEMES = MiniCard.themes;
@@ -466,20 +468,44 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
   // ---- Live form
   let photoImg = null;
   function poke(fig, bub, text) { bub.textContent = text; bub.classList.remove("pop"); fig.classList.remove("jump"); void bub.offsetWidth; bub.classList.add("pop"); fig.classList.add("jump"); }
+  // ---- Name rules: letters only, at least first + second name, each word capitalised.
+  // Full name is saved; the card shows the first two names.
+  const titleWord = (w) => w.split("-").map(p => p ? p.charAt(0).toLocaleUpperCase() + p.slice(1).toLocaleLowerCase() : p).join("-");
+  function checkName(raw) {
+    const s = raw.trim().replace(/\s+/g, " ");
+    if (!s) return { err: "Type your first and second name." };
+    if (/[^\p{L}\p{M}\s'-]/u.test(s)) return { err: "Use letters only, no numbers or symbols." };
+    const words = s.split(" ").map(titleWord);
+    if (words.length < 2) return { err: "Add your second name too." };
+    if (words.some(w => w.replace(/['-]/g, "").length < 2)) return { err: "Each name needs at least 2 letters." };
+    const full = words.join(" ");
+    if (full.length > 60) return { err: "That name is too long." };
+    return { full, card: words.slice(0, 2).join(" ") };
+  }
+  function nameState() { const r = checkName($("name").value); state.name = r.full || ""; state.cardName = r.card || ""; return r; }
+  function showNameErr(r) { $("nameErr").textContent = r.err || ""; $("name").setAttribute("aria-invalid", r.err ? "true" : "false"); }
   function refresh() {
-    $("make").disabled = !(state.name.length >= 3 && state.photo) || state.busy;
-    $("labName").classList.toggle("done", state.name.length >= 3);
+    $("make").disabled = !(state.name && state.photo) || state.busy;
+    $("labName").classList.toggle("done", !!state.name);
     $("labPhoto").classList.toggle("done", !!state.photo);
   }
   let typingTimer = null, lastFirst = "";
   $("name").addEventListener("input", () => {
-    state.name = $("name").value.trim().replace(/\s+/g, " ");
+    const r = nameState();
+    // while typing: flag bad characters right away; otherwise only update an error that's already showing
+    if ($("nameErr").textContent || /[^\p{L}\p{M}\s'-]/u.test($("name").value)) showNameErr(r);
     refresh(); clearTimeout(typingTimer);
     typingTimer = setTimeout(() => {
-      const first = state.name.split(" ")[0] || "";
+      const first = titleWord($("name").value.trim().split(/\s+/)[0] || "");
       if (first === lastFirst) return; lastFirst = first;
       poke($("figA"), $("bubA"), first ? `Hi ${first}!` : "What's your name?");
     }, 350);
+  });
+  $("name").addEventListener("blur", () => {
+    const r = nameState();
+    if (r.full) $("name").value = r.full;
+    showNameErr($("name").value.trim() ? r : {});
+    refresh();
   });
   $("pick").addEventListener("click", () => $("file").click());
   $("file").addEventListener("change", (e) => { if (e.target.files[0]) takeFile(e.target.files[0]); });
@@ -545,7 +571,7 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
     $("cardCanvas").style.display = "none"; $("cardImg").style.display = "block";
   }
   async function shuffleTo() {
-    const canvas = $("cardCanvas"), data = { name: state.name, code: state.code };
+    const canvas = $("cardCanvas"), data = { name: state.cardName, code: state.code };
     canvas.style.display = "block"; $("cardImg").style.display = "none";
     if (!reduce) {
       let t = state.theme;
@@ -582,7 +608,8 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
   });
 
   $("again").addEventListener("click", () => {
-    Object.assign(state, { name: "", photo: null, code: "", row: 0, seed: 0 }); photoImg = null; lastFirst = "";
+    Object.assign(state, { name: "", cardName: "", photo: null, code: "", row: 0, seed: 0 }); photoImg = null; lastFirst = "";
+    showNameErr({});
     $("name").value = ""; $("file").value = ""; $("thumb").textContent = "+"; $("pickT1").textContent = "Tap to pick a photo";
     $("bubA").textContent = "What's your name?"; $("bubB").textContent = "Add your photo!";
     $("result").classList.remove("show"); refresh();
