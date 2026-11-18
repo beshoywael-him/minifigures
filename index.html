@@ -462,7 +462,7 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
   const isAr = (t) => /[؀-ۿ]/.test(t);
   async function drawCard(canvas, data, photoImg) {
     await fontsReady;
-    return MiniCard.drawCard(canvas, { ...data, nameStyle: "bricks" }, photoImg);
+    return MiniCard.drawCard(canvas, { ...data, nameStyle: "text" }, photoImg);
   }
 
   // ---- Live form
