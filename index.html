@@ -316,6 +316,7 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
     }
     throw lastErr;
   }
+  const errText = (e) => String((e && e.message) || e || "unknown").slice(0, 120);
   function setStatus(kind, text) { $("saveStatus").className = "status " + kind; $("saveText").textContent = text; }
 
   function cardJpeg() {
@@ -330,7 +331,7 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
     try {
       await call("saveCard", state.code, state.row, cardJpeg(), THEMES[state.theme].name);
       setStatus("ok", "Saved! Mr. Besho has your card");
-    } catch { setStatus("bad", "Card not saved. Tap Shuffle to try again"); }
+    } catch (e) { setStatus("bad", "Card not saved. Tap Shuffle to try again (" + errText(e) + ")"); }
     state.saving = false;
     if (state.pendingSave) { state.pendingSave = false; saveCardNow(); }
   }
@@ -359,14 +360,14 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
     setStatus("", "Saving...");
     let registered = false;
     try { const r = await call("register", state.name, state.photo); state.code = r.code; state.row = r.row; registered = true; }
-    catch (err) { state.code = "MF-???"; state.row = 0; }
+    catch (err) { state.code = "MF-???"; state.row = 0; state.lastErr = errText(err); }
     state.seed = newSeed(); state.theme = newTheme(state.theme);
     $("result").classList.add("show");
     $("result").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     await shuffleTo();
     poke($("figA"), $("bubA"), "Welcome, leader!"); poke($("figB"), $("bubB"), "Awesome card!");
     if (registered) await saveCardNow();
-    else setStatus("bad", hasServer ? "Not saved. Check your internet and try again" : "Preview only: not connected");
+    else setStatus("bad", "Not saved. Check your internet and try again (" + state.lastErr + ")");
     $("make").textContent = "Make my card"; state.busy = false; refresh();
   });
 
