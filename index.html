@@ -649,7 +649,8 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
   const isAr = (t) => /[؀-ۿ]/.test(t);
   async function drawCard(canvas, data, photoImg) {
     await fontsReady;
-    return MiniCard.drawCard(canvas, { ...data, nameStyle: "bubble" }, photoImg);
+    const code = String(data.code || "").replace(/^MF-/, "M-");
+    return MiniCard.drawCard(canvas, { ...data, code, nameStyle: "bubble" }, photoImg);
   }
 
   // ---- Live form
@@ -754,7 +755,7 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
   function showImage() {
     const url = $("cardCanvas").toDataURL("image/png");
     $("cardImg").src = url; $("dl").href = url;
-    $("dl").download = `MiniFigure-${state.code || "card"}.png`;
+    $("dl").download = `MiniFigure-${(state.code || "card").replace(/^MF-/, "M-")}.png`;
     $("cardCanvas").style.display = "none"; $("cardImg").style.display = "block";
   }
   async function shuffleTo() {
@@ -775,7 +776,7 @@ button.alt:disabled { opacity: .5; cursor: not-allowed; }
     setStatus("", "Saving...");
     let registered = false;
     try { const r = await call("register", state.name, state.photo); state.code = r.code; state.row = r.row; registered = true; }
-    catch (err) { state.code = "MF-???"; state.row = 0; state.lastErr = errText(err); }
+    catch (err) { state.code = "M-???"; state.row = 0; state.lastErr = errText(err); }
     state.seed = newSeed(); state.theme = newTheme(state.theme);
     $("result").classList.add("show");
     $("result").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
