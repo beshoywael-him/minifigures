@@ -1,6 +1,6 @@
 /* Mini Figures Hub — kids' app, plus the shared login / password screens for the coach and admin pages. */
 (function (G) {
-  const { $, $$, esc, h, ago, toast, modal, confirmBox, teamTitle, parade, progressBricks, tower, libraryGrid, openItem, addItemModal, coinHtml, studHtml } = G.UI;
+  const { $, $$, esc, h, ago, toast, modal, confirmBox, teamTitle, parade, progressBricks, tower, libraryGrid, openItem, addItemModal, coinHtml } = G.UI;
   const API = G.API, FIG = G.FIG, EGGS = G.EGGS;
   const MODE = G.HUB_MODE || "kid";          // kid | coach | admin
   const root = $("#app");
@@ -17,21 +17,21 @@
 
   // ================= LOGIN =================
   async function showLogin() {
-    root.innerHTML = `${demoBanner()}<div class="login"><div class="hero night">
-      <img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><h1>${TITLE[MODE]}</h1><p class="tag">BIOGLOW season · Bottactix Academy</p>
-      <div class="parade" id="lp"></div>${EGGS.sticker("mushroom", "corner-l", 46)}</div><div class="ground"></div>
-      <form class="card" id="lf" autocomplete="on" novalidate><h2 style="margin-bottom:14px">${MODE === "kid" ? "Hi Mini Figure! 👋" : MODE === "coach" ? "Coach sign in" : "Admin sign in"}</h2>
+    root.innerHTML = `${demoBanner()}<div class="login"><div class="hero night"><div class="wrap enter">
+      <img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><h1>${TITLE[MODE].replace("<br>", " ")}</h1><p class="tag">BIOGLOW season · Bottactix Academy</p>
+      <div class="parade" id="lp"></div>${EGGS.sticker("mushroom", "corner-l", 46)}</div></div>
+      <form class="card" id="lf" autocomplete="on" novalidate><h2 style="margin-bottom:14px">${MODE === "kid" ? "Sign in, Mini Figure" : MODE === "coach" ? "Coach sign in" : "Admin sign in"}</h2>
       <div class="err hidden" id="le"></div>
       <label class="field"><span>Username</span><input class="input" name="u" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
       <label class="field"><span>Password</span><input class="input" name="p" type="password" autocomplete="current-password" required></label>
-      <button class="btn y" style="width:100%" type="submit">Let's go! ▶</button>
+      <button class="btn" style="width:100%" type="submit">Sign in</button>
       <p class="muted" style="text-align:center;margin:14px 0 0">Forgot your password? Ask your ${MODE === "kid" ? "coach" : "admin"} for a new one.</p></form>
-      <p class="foot"><a href="#" data-credits>Photo credits</a></p></div>`;
+      <p class="foot"><a href="#" data-credits>Photos: Wikimedia Commons contributors</a></p></div>`;
     wireDemo();
     try {
       await loadParts();
-      const looks = await API.parade(); const n = Math.min(Math.max(looks.length, 5), innerWidth < 600 ? 5 : 9);
-      const list = (looks.length ? looks : [{}, {}, {}, {}, {}]).sort(() => Math.random() - 0.5).slice(0, n);
+      const looks = (await API.parade()).filter((l) => FIG.hasFigure(l)); const n = innerWidth < 600 ? 3 : innerWidth < 1000 ? 5 : 7;
+      const list = looks.sort(() => Math.random() - 0.5).slice(0, n);
       $("#lp").innerHTML = list.map((l, i) => FIG.render(l, { size: innerWidth < 600 ? 84 : 110, seed: "p" + i + Math.random() })).join("");
     } catch (e) {}
     $("#lf").onsubmit = async (e) => {
@@ -44,9 +44,9 @@
   }
 
   async function showChangePw(me) {
-    root.innerHTML = `${demoBanner()}<div class="login"><div class="hero night" style="min-height:230px"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix">
-      <div class="parade">${FIG.render(me.look, { size: 110, seed: me.username })}</div></div><div class="ground"></div>
-      <form class="card" id="pf" novalidate><h2>Welcome, ${esc(me.display_name.split(" ")[0])}!</h2>
+    root.innerHTML = `${demoBanner()}<div class="login"><div class="hero night" style="min-height:230px"><div class="wrap enter"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix">
+      <div class="parade">${FIG.render(me.look, { size: 110, seed: me.username })}</div></div></div>
+      <form class="card" id="pf" novalidate><h2>Welcome, ${esc(me.display_name.split(" ")[0])}</h2>
       <p style="font-weight:700">First, make your <b>own secret password</b>. Don't share it with anyone${MODE === "kid" ? ", not even your teammates" : ""}.</p>
       <div class="err hidden" id="pe"></div>
       <label class="field"><span>New password (6 or more letters/numbers)</span><input class="input" name="a" type="password" autocomplete="new-password" minlength="6" required></label>
@@ -59,20 +59,20 @@
       e.preventDefault(); const f = e.target, err = $("#pe"); err.classList.add("hidden");
       try {
         if (f.a.value !== f.b.value) throw new Error("The two passwords are not the same");
-        await API.changePassword(f.a.value); toast("Password saved! 🔒"); boot();
+        await API.changePassword(f.a.value); toast("Password saved"); boot();
       } catch (x) { err.textContent = x.message; err.classList.remove("hidden"); }
     };
   }
 
   function wrongPlace() {
     const msg = { kid: "This page is for Mini Figures. Coaches and admins have their own links.", coach: "This page is only for coaches. Admins have their own page.", admin: "This page is only for admins." }[MODE];
-    root.innerHTML = `<div class="login"><div class="hero night" style="min-height:200px"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><h1>Oops!</h1></div><div class="ground"></div>
+    root.innerHTML = `<div class="login"><div class="hero night" style="min-height:200px"><div class="wrap enter"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><h1>Wrong page</h1></div></div>
       <div class="card" style="width:min(440px,calc(100% - 28px));margin:20px auto"><p style="font-weight:800">${msg}</p><button class="btn" id="so">Sign out</button></div></div>`;
     $("#so").onclick = async () => { await API.signOut(); boot(); };
   }
 
   // ================= KID APP =================
-  const TABS = [["home", "🏠", "Home", "#FF8A00"], ["tasks", "🧱", "Tasks", "#00B386"], ["library", "📚", "Library", "#9B4DFF"], ["store", "🛍️", "Store", "#FF4FA3"], ["ask", "💬", "Ask", "#2F7BFF"]];
+  const TABS = [["home", "🏠", "Home"], ["tasks", "🧱", "Tasks"], ["library", "📚", "Library"], ["store", "🛍️", "Store"], ["ask", "💬", "Ask"]];
   let D = {};
 
   async function loadAll() {
@@ -84,11 +84,11 @@
 
   function shell() {
     const me = D.me;
-    const nav = () => TABS.map(([k, i, t, c]) => `<button class="navbtn" data-t="${k}" style="--c:${c}"><span class="ni">${i}</span>${t}</button>`).join("");
+    const nav = () => TABS.map(([k, i, t]) => `<button class="navbtn" data-t="${k}"><span class="ni" aria-hidden="true">${i}</span>${t}</button>`).join("");
     root.innerHTML = `${demoBanner()}<aside class="side"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix">${nav()}
-      <div class="grow"></div><a href="#" class="muted" data-credits style="padding:6px 14px">Photo credits</a><button class="navbtn" id="so2"><span class="ni">🚪</span>Sign out</button></aside>
+      <div class="grow"></div><a href="#" class="muted credit" data-credits>Photos: Wikimedia Commons</a><button class="navbtn" id="so2"><span class="ni" aria-hidden="true">🚪</span>Sign out</button></aside>
       <div class="shell"><header class="topbar"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><span class="uname" style="font-weight:900">${esc(me.display_name)}</span><span class="grow"></span>
-        <div class="wallet"><span class="chip" title="Gold coins (for the store)">${coinHtml}<span id="wc">${me.coins}</span></span><span class="chip stud" title="Session studs (your salary)">${studHtml}<span id="ws">${me.studs}</span></span></div>
+        <div class="wallet"><span class="chip" title="Gold coins (for the store)">${coinHtml}<span id="wc">${me.coins}</span></span></div>
         <button class="btn sm w" id="so" aria-label="Sign out" title="Sign out">🚪</button></header>
         <nav class="topnav">${nav()}</nav>
         <section class="teamhero night" id="hero"></section><main class="main" id="view"></main></div>
@@ -99,10 +99,10 @@
   }
   function hero() {
     const t = D.team;
-    $("#hero").innerHTML = `<div class="row">${t && t.logo_url ? `<img class="tlogo" src="${esc(t.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(t))}</span>${t ? `<span class="slot">📅 ${esc(t.slot)}</span>` : ""}</div>
-      <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 96 : 120)}</div>${EGGS.sticker("firefly", "corner-r", 44)}`;
+    $("#hero").innerHTML = `<div class="wrap enter"><div class="row">${t && t.logo_url ? `<img class="tlogo" src="${esc(t.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(t))}</span>${t ? `<span class="slot">📅 ${esc(t.slot)}</span>` : ""}</div>
+      <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 96 : 120)}</div>${EGGS.sticker("firefly", "corner-r", 44)}</div>`;
   }
-  function wallet() { $("#wc").textContent = D.me.coins; $("#ws").textContent = D.me.studs; }
+  function wallet() { $("#wc").textContent = D.me.coins; }
 
   function go(tab) {
     S.tab = tab;
@@ -111,7 +111,7 @@
     ({ home, tasks: tasksView, library, store, ask })[tab]().catch((e) => { v.innerHTML = `<div class="err">${esc(e.message)}</div>`; });
     scrollTo({ top: 0, behavior: "smooth" });
   }
-  const head = (ic, title, extra = "") => `<h3><span class="ic">${ic}</span><span style="flex:1">${title}</span>${extra}</h3>`;
+  const head = (ic, title, extra = "") => `<h3><span style="flex:1">${title}</span>${extra}</h3>`;
 
   // ---------- HOME ----------
   async function home() {
@@ -121,17 +121,16 @@
     v.innerHTML = `<div class="grid g3">
       <div class="card acc-orange">${head("⭐", "Me")}<div class="mecard"><div class="big">${FIG.render(me.look, { size: 120, seed: me.username, label: me.display_name })}</div>
         <div class="stats"><div style="font-family:var(--display);font-size:24px;line-height:1">${esc(me.display_name)}</div>
-        <div class="stat">${studHtml}<div><b>${me.studs}</b><div class="lbl">session studs<br>= ${me.studs * 100} EGP salary</div></div></div>
         <div class="stat">${coinHtml}<div><b>${me.coins}</b><div class="lbl">gold coins<br>for the store</div></div></div>
-        <button class="btn sm y" data-go="store">Dress up 🛍️</button></div></div></div>
+        <button class="btn sm" data-go="store">Dress up in the store</button></div></div></div>
       <div class="card acc-blue">${head("👥", "My team")}
         <p style="margin:0 0 6px"><b>${esc(teamTitle(t))}</b> · ${esc(t ? t.slot : "")}</p>
         <p class="muted" style="margin:0 0 10px">Coach: <b>${esc(D.coaches.join(", ") || "—")}</b></p>
         <div style="display:flex;flex-wrap:wrap;gap:6px">${D.kids.map((k) => `<span class="pill">${esc(k.name.split(" ").slice(0, 2).join(" "))}</span>`).join("")}</div></div>
       <div class="card acc-green">${head("🏗️", "Our build")}${progressBricks(t)}</div>
       <div class="card acc-yellow">${head("🧱", "Do now")}
-        ${now ? `<div class="task ${now.status}" style="margin-bottom:10px">${UI.labelChip(now.label)}<div class="tt">${esc(now.title)}</div></div>` : '<p class="muted">No tasks right now 🎉</p>'}
-        ${next ? `<p class="muted" style="margin:6px 0 10px">Next: <b>${esc(next.title)}</b></p>` : ""}<button class="btn sm" data-go="tasks">Open the task tower ▶</button></div>
+        ${now ? `<div class="task ${now.status}" style="margin-bottom:10px">${UI.labelChip(now.label)}<div class="tt">${esc(now.title)}</div></div>` : '<p class="muted">No tasks right now.</p>'}
+        ${next ? `<p class="muted" style="margin:6px 0 10px">Next: <b>${esc(next.title)}</b></p>` : ""}<button class="btn sm w" data-go="tasks">Open the task tower</button></div>
       <div class="card acc-pink" style="grid-column:1/-1">${head("📣", "Announcements")}
         ${D.ann.length ? D.ann.slice(0, 6).map((a) => `<div class="ann ${a.team_id == null ? "all" : ""}"><div class="meta">${a.team_id == null ? "For all Mini Figures" : "From your coach"} · ${ago(a.created_at)}</div>${esc(a.body)}</div>`).join("") : '<p class="muted">Nothing new.</p>'}</div>
     </div>`;
@@ -143,12 +142,12 @@
   async function tasksView() {
     D.tasks = await API.tasks(D.me.team_id);
     const v = $("#view");
-    v.innerHTML = `<div class="pagehead"><h2 style="flex:1">Task tower 🧱</h2><button class="btn g" id="addT">+ Add a task</button></div>
+    v.innerHTML = `<div class="pagehead"><h2 style="flex:1">Task tower</h2><button class="btn g" id="addT">+ Add a task</button></div>
       <p class="muted" style="margin:-6px 0 14px">Start at the top. A level opens only when the level above it is all done.</p>`;
     v.append(tower(D.tasks, {
       kid: true, meId: D.me.id,
       onStatus: async (t, s) => {
-        try { await API.setTaskStatus(t.id, s); if (s === "done") { toast("Great job! ✓"); EGGS.toucanFly(); } tasksView(); }
+        try { await API.setTaskStatus(t.id, s); if (s === "done") { toast("Task done. Nice work."); EGGS.toucanFly(); } tasksView(); }
         catch (e) { toast(e.message, 3500); }
       },
       onDelete: async (t) => { if (await confirmBox("Delete this task?", esc(t.title), "Delete", "r")) { await API.deleteTask(t.id); tasksView(); } }
@@ -171,7 +170,7 @@
     const v = $("#view");
     const tabs = [["idea", "💡 Model ideas"], ["photo", "📷 Team photos"], ["coach_idea", "🎓 From coach"]];
     const list = items.filter((i) => i.section === S.libTab);
-    v.innerHTML = `<div class="pagehead"><h2 style="flex:1">Team library 📚</h2>${EGGS.sticker("morpho", "", 46)}
+    v.innerHTML = `<div class="pagehead"><h2 style="flex:1">Team library</h2>${EGGS.sticker("morpho", "", 46)}
       ${S.libTab !== "coach_idea" ? `<button class="btn g" id="addL">+ Add ${S.libTab === "photo" ? "a photo" : "an idea"}</button>` : ""}</div>
       <div class="tabs" role="tablist">${tabs.map(([k, t]) => `<button class="tab ${S.libTab === k ? "on" : ""}" role="tab" aria-selected="${S.libTab === k}" data-l="${k}">${t} (${items.filter((i) => i.section === k).length})</button>`).join("")}</div>`;
     $$("[data-l]", v).forEach((b) => (b.onclick = () => { S.libTab = b.dataset.l; library(); }));
@@ -190,24 +189,24 @@
     const v = $("#view");
     const dirty = JSON.stringify(pick(draft)) !== JSON.stringify(pick(Object.assign(FIG.defaults(), pick(me.look))));
     const any = FIG.parts.length > 0;
-    v.innerHTML = `<div class="pagehead"><h2 style="flex:1">Minifig store 🛍️</h2>${EGGS.sticker("mushroom", "", 46)}</div>
+    v.innerHTML = `<div class="pagehead"><h2 style="flex:1">Minifig store</h2>${EGGS.sticker("mushroom", "", 46)}</div>
       <div class="storewrap"><div class="mirror"><div class="card"><div class="stage night">${FIG.render(draft, { size: 170, seed: me.username })}<div class="floor"></div></div>
       <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px"><span class="chip">${coinHtml}${me.coins} coins</span></div>
-      <button class="btn g" id="saveL" style="width:100%" ${dirty ? "" : "disabled"}>${dirty ? "Save my look ✓" : "Looking good!"}</button>
+      <button class="btn g" id="saveL" style="width:100%" ${dirty ? "" : "disabled"}>${dirty ? "Save my look" : "Looking good"}</button>
       ${dirty ? '<button class="link" id="undoL">Undo changes</button>' : ""}</div></div>
       <div><div class="tabs">${SHELF.map(([k, t]) => `<button class="tab ${S.storeTab === k ? "on" : ""}" data-s="${k}">${t}</button>`).join("")}</div><div id="shelf"></div></div></div>`;
     $$("[data-s]", v).forEach((b) => (b.onclick = () => { S.storeTab = b.dataset.s; store(); }));
-    $("#saveL").onclick = async () => { try { D.me = await API.setLook(pick(draft)); draft = null; toast("Look saved! 😎"); D.figs = await API.figs(D.me.team_id); hero(); store(); } catch (e) { toast(e.message, 3500); } };
+    $("#saveL").onclick = async () => { try { D.me = await API.setLook(pick(draft)); draft = null; toast("Look saved"); D.figs = await API.figs(D.me.team_id); hero(); store(); } catch (e) { toast(e.message, 3500); } };
     const u = $("#undoL"); if (u) u.onclick = () => { draft = null; store(); };
     const shelf = $("#shelf");
-    if (!any) { shelf.innerHTML = `<div class="card empty"><div class="big">🧱</div>New LEGO pieces are on the way!<br>Your coaches are photographing them right now.</div>`; return; }
+    if (!any) { shelf.innerHTML = `<div class="card empty">New LEGO pieces are on the way.<br>Your coaches are adding them now.</div>`; return; }
     const items = FIG.parts.filter((i) => i.slot === S.storeTab);
     const g = h('<div class="items"></div>');
     if (["hair", "hat", "acc"].includes(S.storeTab)) {
       const none = h(`<button class="item ${!draft[S.storeTab] || draft[S.storeTab] === "none" ? "on" : ""}"><span class="mf-part" style="width:86px;height:86px;font-size:40px;display:grid;place-items:center">🚫</span><div class="nm">None</div><span class="free">Take off</span></button>`);
       none.onclick = () => { draft[S.storeTab] = "none"; store(); }; g.append(none);
     }
-    if (!items.length) g.append(h('<p class="muted" style="grid-column:1/-1">Nothing here yet. Check back soon!</p>'));
+    if (!items.length) g.append(h('<p class="muted" style="grid-column:1/-1">Nothing here yet. Check back soon.</p>'));
     items.forEach((it) => {
       const owned = it.price === 0 || me.owned.includes(it.id);
       const b = h(`<button class="item ${draft[it.slot] === it.id ? "on" : ""} ${!owned && me.coins < it.price ? "cant" : ""}">${FIG.partImg(it, 86)}
@@ -222,16 +221,16 @@
     const me = D.me, left = me.coins - it.price;
     const look = Object.assign({}, draft, { [it.slot]: it.id });
     if (left < 0) {
-      modal("Not enough coins yet", `<div style="text-align:center">${FIG.partImg(it, 130)}<p style="font-weight:800">${esc(it.name)} costs <b>${it.price}</b> gold coins. You have <b>${me.coins}</b>.<br>Keep leading your team and your coach will give you more!</p></div>`, [{ t: "OK", cls: "y" }], { noFocus: true });
+      modal("Not enough coins yet", `<div style="text-align:center">${FIG.partImg(it, 130)}<p style="font-weight:800">${esc(it.name)} costs <b>${it.price}</b> gold coins. You have <b>${me.coins}</b>.<br>Keep leading your team and your coach will give you more.</p></div>`, [{ t: "OK", cls: "" }], { noFocus: true });
       return;
     }
     modal("Buy " + it.name + "?", `<div style="text-align:center"><div class="stage night" style="display:inline-block;padding:10px 20px 0;border-radius:20px">${FIG.render(look, { size: 120, seed: me.username })}</div>
       <p style="font-weight:800;font-size:18px">It costs <span class="chip">${coinHtml}${it.price}</span><br>You will have <b>${left}</b> coins left.</p>
       <p class="err" style="font-size:15px">You can't give it back after you buy it.</p></div>`,
-      [{ t: "No, wait", cls: "w" }, { t: "Yes, buy it!", cls: "g", fn: async () => {
+      [{ t: "No, wait", cls: "w" }, { t: "Buy it", cls: "g", fn: async () => {
         await API.buy(it.id); D.me = await API.me(true); draft[it.slot] = it.id; wallet();
         try { D.me = await API.setLook(pick(draft)); draft = null; D.figs = await API.figs(D.me.team_id); hero(); } catch (e) {}
-        toast("🎉 It's yours!"); store();
+        toast("It's yours now"); store();
       } }], { noFocus: true });
   }
 
@@ -242,13 +241,13 @@
     v.innerHTML = `<div class="grid g2"><form class="card acc-blue" id="af">${head("💬", "Ask or tell your coach")}
       <div class="tabs"><label class="tab on"><input type="radio" name="k" value="question" checked hidden> ❓ Question</label><label class="tab"><input type="radio" name="k" value="feedback" hidden> 💭 Feedback</label></div>
       <label class="field"><span>Your message</span><textarea class="input" name="b" maxlength="1000" required placeholder="Type here..."></textarea></label>
-      <button class="btn" type="submit">Send ▶</button></form>
+      <button class="btn" type="submit">Send to my coach</button></form>
       <div class="card acc-green">${head("📬", "Our messages")}${msgs.length ? msgs.map((m) => `<div class="msg"><span class="pill">${m.kind === "question" ? "❓ Question" : "💭 Feedback"}</span> <span class="muted">${ago(m.created_at)}</span>
         <div style="font-weight:700;margin-top:6px;white-space:pre-wrap">${esc(m.body)}</div>${m.reply ? `<div class="reply">${esc(m.reply)}</div>` : '<div class="muted" style="margin-top:6px">Waiting for the coach…</div>'}</div>`).join("") : '<p class="muted">No messages yet.</p>'}</div></div>`;
     $$("#af .tab", v).forEach((l) => (l.onclick = () => { $$("#af .tab", v).forEach((x) => x.classList.remove("on")); l.classList.add("on"); }));
     $("#af").onsubmit = async (e) => {
       e.preventDefault(); const b = e.target.b.value.trim(); if (!b) return;
-      try { await API.sendMessage(D.me.team_id, e.target.querySelector("[name=k]:checked").value, b); toast("Sent to your coach!"); ask(); } catch (x) { toast(x.message, 3500); }
+      try { await API.sendMessage(D.me.team_id, e.target.querySelector("[name=k]:checked").value, b); toast("Sent to your coach"); ask(); } catch (x) { toast(x.message, 3500); }
     };
   }
 

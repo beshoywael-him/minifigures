@@ -1,11 +1,11 @@
 /* BIOGLOW easter eggs: secret rainforest critters (real photos), glow mode, a flying toucan. */
 (function (G) {
   const FACTS = {
-    firefly: ["You switched on BIOGLOW mode! ✨", "A firefly's light is called cold light: it glows without getting hot. Tap the firefly again to switch the lights back on."],
-    frog: ["You found the red-eyed tree frog! 🐸", "When it rests, it hides its bright red eyes. If an animal comes close, it pops them open to give it a scare!"],
-    mushroom: ["You found the glowing mushroom! 🍄", "Some mushrooms glow green in the dark rainforest. People call this light foxfire."],
-    morpho: ["You found the blue morpho! 🦋", "Its wings have no blue colour at all. Tiny scales bend the light so we see bright blue."],
-    toucan: ["You found the toucan! 🐦", "A toucan's huge beak is light and hollow inside, and it helps the bird keep cool."]
+    firefly: ["BIOGLOW mode is on", "A firefly's light is called cold light: it glows without getting hot. Tap the firefly again to switch the lights back on."],
+    frog: ["You found the red-eyed tree frog", "When it rests, it hides its bright red eyes. If an animal comes close, it pops them open to give it a scare."],
+    mushroom: ["You found the glowing mushroom", "Some mushrooms glow green in the dark rainforest. People call this light foxfire."],
+    morpho: ["You found the blue morpho", "Its wings have no blue colour at all. Tiny scales bend the light so we see bright blue."],
+    toucan: ["You found the toucan", "A toucan's huge beak is light and hollow inside, and it helps the bird keep cool."]
   };
   const KEY = "mf-eggs", GKEY = "mf-glow";
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } };
@@ -24,7 +24,7 @@
     if (k === "firefly") setGlow(!document.body.classList.contains("glow"));
     const [t, fact] = FACTS[k];
     G.UI.modal(t, `<div class="eggpop"><img src="${G.FIG.photo(k, 600)}" alt="${G.FIG.PHOTOS[k].name}"><p>${fact}</p>
-      <p class="pill">🔦 Secret critters found: <b>${f.length} / ${total}</b>${f.length === total ? " · You found them all! 🏆" : ""}</p></div>`, [{ t: "Cool!", cls: "g" }], { noFocus: true });
+      <p class="pill">Secret critters found: <b>${f.length} / ${total}</b>${f.length === total ? " · You found them all." : ""}</p></div>`, [{ t: "Close", cls: "g" }], { noFocus: true });
   }
   function toucanFly() {
     const el = document.createElement("img");
@@ -45,7 +45,7 @@
   document.addEventListener("keydown", (e) => {
     if (/input|textarea|select/i.test((e.target && e.target.tagName) || "")) return;
     typed = (typed + (e.key || "").toLowerCase()).slice(-4);
-    if (typed === "glow") { setGlow(!document.body.classList.contains("glow")); G.UI.toast(document.body.classList.contains("glow") ? "BIOGLOW mode ✨" : "Lights on ☀️"); }
+    if (typed === "glow") { setGlow(!document.body.classList.contains("glow")); G.UI.toast(document.body.classList.contains("glow") ? "BIOGLOW mode on" : "Lights on"); }
   });
   document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("[data-egg]"); if (b) { e.preventDefault(); found(b.dataset.egg); } const c = e.target.closest && e.target.closest("[data-credits]"); if (c) { e.preventDefault(); credits(); } });
   try { if (localStorage.getItem(GKEY)) document.body.classList.add("glow"); } catch (e) {}

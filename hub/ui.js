@@ -58,7 +58,7 @@
     const p = (team && team.progress) || []; const firstOpen = p.findIndex((x) => !x.done);
     return `<div class="pbar" aria-label="Progress ${progressPct(team)}%"><i style="width:${progressPct(team)}%"></i></div>
       <p class="muted" style="margin:8px 0 10px">${progressPct(team)}% of our build is done</p>
-      <div class="bricks">${p.map((x, i) => `<div class="brickrow ${x.done ? "done" : i === firstOpen ? "next" : ""}"><span class="tick">${x.done ? "✓" : i === firstOpen ? "★" : ""}</span>${esc(x.k)}${i === firstOpen ? ' <span class="pill" style="margin-left:auto">Next!</span>' : ""}</div>`).join("")}</div>`;
+      <div class="bricks">${p.map((x, i) => `<div class="brickrow ${x.done ? "done" : i === firstOpen ? "next" : ""}"><span class="tick">${x.done ? "✓" : i === firstOpen ? "★" : ""}</span>${esc(x.k)}${i === firstOpen ? ' <span class="pill" style="margin-left:auto">Next</span>' : ""}</div>`).join("")}</div>`;
   }
 
   // ---------- task tower ----------
@@ -78,11 +78,11 @@
   function tower(tasks, o) {
     const L = levels(tasks);
     const wrap = h('<div class="tower"></div>');
-    if (!L.groups.length) wrap.append(h(`<div class="empty"><div class="big">🎉</div>All tasks are done! ${o.coach ? "Add the next one." : "Ask your coach what's next."}</div>`));
+    if (!L.groups.length) wrap.append(h(`<div class="empty">All tasks are done. ${o.coach ? "Add the next one." : "Ask your coach what's next."}</div>`));
     L.groups.forEach((g, i) => {
       const now = i === 0;
       const lv = h(`<section class="level ${now ? "now" : "locked"}"><div class="lh"><span class="badge">${now ? "DO NOW" : "Level " + (i + 1)}</span>
-        <span class="muted">${now ? (g.tasks.length > 1 ? "Work on these together. Split them up!" : "This is the most important task.") : "🔒 Opens when the level above is done"}</span></div><div class="tasks"></div></section>`);
+        <span class="muted">${now ? (g.tasks.length > 1 ? "Work on these together. Split them up." : "This is the most important task.") : "🔒 Opens when the level above is done"}</span></div><div class="tasks"></div></section>`);
       g.tasks.forEach((t) => $(".tasks", lv).append(taskCard(t, now, o)));
       wrap.append(lv);
     });
@@ -131,7 +131,7 @@
       card.onclick = () => onOpen(it, urls[it.storage_path]);
       grid.append(card);
     });
-    if (!items.length) return h('<div class="empty"><div class="big">🧱</div>Nothing here yet. Be the first to add something!</div>');
+    if (!items.length) return h('<div class="empty">Nothing here yet. Add the first one.</div>');
     return grid;
   }
   function openItem(it, url, canDelete, onDelete) {
@@ -161,7 +161,7 @@
     };
     $$(".kind", f).forEach((b) => (b.onclick = () => { kind = b.dataset.k; sync(); }));
     sync();
-    modal(section === "photo" ? "Add a team photo" : section === "coach_idea" ? "Add an idea for the team" : "Add a model idea", f, [{ t: "Cancel", cls: "w" }, { t: "Add it!", cls: "g", fn: async () => {
+    modal(section === "photo" ? "Add a team photo" : section === "coach_idea" ? "Add an idea for the team" : "Add a model idea", f, [{ t: "Cancel", cls: "w" }, { t: "Add it", cls: "g", fn: async () => {
       const title = $("[name=title]", f).value.trim(), body = $("[name=body]", f).value.trim();
       const item = { team_id: teamId, section, kind, title, body };
       let file = null;
@@ -169,11 +169,11 @@
       if (kind === "link") { item.url = $("[name=url_link]", f).value.trim(); if (!/^https:\/\/\S+\.\S+/.test(item.url)) throw new Error("Paste a full link that starts with https://"); }
       if (kind === "video") { item.url = $("[name=url_video]", f).value.trim(); if (!G.API.ytId(item.url)) throw new Error("That doesn't look like a YouTube link"); }
       if (kind === "text" && !title && !body) throw new Error("Write your idea first");
-      await G.API.addLibrary(item, file); toast("Added to the library!"); onDone && onDone();
+      await G.API.addLibrary(item, file); toast("Added to the library"); onDone && onDone();
     } }]);
   }
 
-  const coinHtml = '<span class="coin" aria-hidden="true"></span>';
+  const coinHtml = '<span class="coin" aria-hidden="true">🪙</span>';
   const studHtml = '<span class="studi" aria-hidden="true"></span>';
   G.UI = { $, $$, esc, h, ago, toast, modal, confirmBox, labelChip, teamTitle, parade, progressPct, progressBricks, levels, nowNext, tower, libraryGrid, openItem, addItemModal, coinHtml, studHtml };
 })(window);

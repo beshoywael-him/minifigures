@@ -1,6 +1,6 @@
 /* Mini Figures Hub — Coach Room. Coaches see only their own teams; the admin sees everything. */
 (function (G) {
-  const { $, $$, esc, h, ago, toast, modal, confirmBox, teamTitle, progressBricks, progressPct, tower, nowNext, libraryGrid, openItem, addItemModal, coinHtml, studHtml, labelChip } = G.UI;
+  const { $, $$, esc, h, ago, toast, modal, confirmBox, teamTitle, progressBricks, progressPct, tower, nowNext, libraryGrid, openItem, addItemModal, coinHtml, labelChip } = G.UI;
   const API = G.API, FIG = G.FIG;
   const root = $("#app");
   let ME = null, C = {}, libTab = "idea", ADMIN = false;
@@ -12,7 +12,7 @@
     root.innerHTML = `${API.demo ? '<div class="demo-banner">DEMO MODE — sample data <button type="button" id="demoReset">reset</button></div>' : ""}
       <div class="shell" style="--side:0px"><header class="topbar"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix" style="display:block"><b style="font-family:var(--display);font-size:20px">${ADMIN ? "Admin Room" : "Coach Room"}</b>
       <span class="grow"></span><span class="muted">${esc(me.display_name)}</span>${G.EGGS.sticker("firefly", "", 38)}<button class="btn sm w" id="so">Sign out</button></header>
-      <main class="main" id="view"></main><p class="foot"><a href="#" data-credits>Photo credits</a></p></div>`;
+      <main class="main" id="view"></main><p class="foot"><a href="#" data-credits>Photos: Wikimedia Commons contributors</a></p></div>`;
     const dr = $("#demoReset"); if (dr) dr.onclick = () => { API.reset(); location.reload(); };
     $("#so").onclick = async () => { await API.signOut(); location.reload(); };
     dashboard();
@@ -26,7 +26,7 @@
     const [figs, tasks, msgs] = await Promise.all([API.figs(null), ids.length ? API.tasks(ids) : [], ids.length ? API.messages(ids) : []]);
     C = { teams, figs, tasks, msgs };
     v.innerHTML = `<div class="pagehead"><h2 style="flex:1">${ADMIN ? "All teams" : "My teams"} (${teams.length})</h2>
-      ${ADMIN ? '<button class="btn sm g" id="studio">🧱 Parts Studio</button><button class="btn sm y" id="annAll">📣 Message everyone</button><button class="btn sm w" id="assign">👥 Coaches & teams</button>' : ""}</div>
+      ${ADMIN ? '<button class="btn sm" id="studio">Parts Studio</button><button class="btn sm w" id="annAll">Message everyone</button><button class="btn sm w" id="assign">Coaches & teams</button>' : ""}</div>
       ${teams.length ? "" : '<div class="card empty">No teams are assigned to you yet. Ask the admin.</div>'}<div class="cgrid" id="boxes"></div>`;
     const boxes = $("#boxes");
     teams.forEach((t) => {
@@ -36,7 +36,7 @@
         <div class="figs night">${tf.length ? tf.map((f) => FIG.render(f.look, { size: 74, seed: f.username, label: f.display_name })).join("") : '<span class="muted" style="align-self:center;padding-bottom:20px;color:#cde">No Mini Figure yet</span>'}</div>
         <div class="muted" style="font-size:13px">${tf.map((f) => esc(f.display_name)).join(" · ")}</div>
         <div class="pbar"><i style="width:${progressPct(t)}%"></i></div>
-        <div class="line"><b>Now</b>${now ? esc(now.title) + (now.status === "doing" ? " 🔨" : "") : "—"}</div><div class="line"><b>Next</b>${next ? esc(next.title) : "—"}</div></button>`);
+        <div class="line"><b>Now</b>${now ? esc(now.title) + (now.status === "doing" ? " (working on it)" : "") : "—"}</div><div class="line"><b>Next</b>${next ? esc(next.title) : "—"}</div></button>`);
       b.onclick = () => teamPage(t.id);
       boxes.append(b);
     });
@@ -73,20 +73,20 @@
     if (!team) { v.innerHTML = '<div class="err">You can\'t open this team.</div>'; return; }
     const T = { team, figs, tasks, kids, ann: ann.filter((a) => a.team_id === id), msgs, lib };
     v.innerHTML = `<button class="btn sm w back" id="bk">◀ All teams</button>
-      <section class="teamhero night card" style="padding:16px;margin-bottom:16px"><div class="row"><span class="num" style="font-family:var(--display);font-size:28px;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:4px 12px">${id}</span>
+      <section class="teamhero night card" style="padding:16px;margin-bottom:16px"><div class="row"><span class="num">${id}</span>
         ${team.logo_url ? `<img class="tlogo" src="${esc(team.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(team))}</span><span class="slot">📅 ${esc(team.slot)}</span></div></section>
       <div class="grid" style="gap:16px">
-        <div class="card"><h3><span class="ic" style="background:#FFE8E9">⭐</span>Mini Figures</h3><div class="figrow" id="figs"></div></div>
-        <div class="card"><h3 style="flex-wrap:wrap"><span class="ic" style="background:#FFF1C2">🧱</span><span style="flex:1">Task queue</span><button class="btn sm g" id="addT">+ Add task</button></h3>
+        <div class="card"><h3>Mini Figures</h3><div class="figrow" id="figs"></div></div>
+        <div class="card"><h3 style="flex-wrap:wrap"><span style="flex:1">Task queue</span><button class="btn sm g" id="addT">+ Add task</button></h3>
           <p class="muted" style="margin-top:-4px">Level 1 is done first. Tasks on the same level can be done at the same time. Use ▲▼ to move a task between levels.</p><div id="tw"></div></div>
         <div class="grid g2">
-          <div class="card"><h3><span class="ic" style="background:#E3FAF2">🏗️</span>Progress</h3><div id="prog"></div></div>
-          <div class="card"><h3><span class="ic" style="background:#EAF1FF">🏷️</span>Team name & logo</h3><div id="ident"></div></div>
-          <div class="card"><h3><span class="ic" style="background:#FFF6D6">📣</span>Announcements</h3><div id="ann"></div></div>
-          <div class="card"><h3><span class="ic" style="background:#EAF1FF">💬</span>Questions & feedback</h3><div id="msgs"></div></div>
+          <div class="card"><h3>Progress</h3><div id="prog"></div></div>
+          <div class="card"><h3>Team name & logo</h3><div id="ident"></div></div>
+          <div class="card"><h3>Announcements</h3><div id="ann"></div></div>
+          <div class="card"><h3>Questions & feedback</h3><div id="msgs"></div></div>
         </div>
-        <div class="card"><h3 style="flex-wrap:wrap"><span class="ic" style="background:#F3E8FF">📚</span><span style="flex:1">Library</span><button class="btn sm g" id="addIdea">+ Idea for the team</button></h3><div id="lib"></div></div>
-        <div class="card"><h3><span class="ic" style="background:#EEF2FF">👥</span>Team members (${kids.length})</h3><div id="kids"></div></div>
+        <div class="card"><h3 style="flex-wrap:wrap"><span style="flex:1">Library</span><button class="btn sm g" id="addIdea">+ Idea for the team</button></h3><div id="lib"></div></div>
+        <div class="card"><h3>Team members (${kids.length})</h3><div id="kids"></div></div>
       </div>`;
     $("#bk").onclick = dashboard;
     const refresh = () => teamPage(id);
@@ -97,24 +97,20 @@
     figs.forEach((f) => {
       const c = h(`<div class="figcard"><div class="night figbox">${FIG.render(f.look, { size: 80, seed: f.username, label: f.display_name })}</div><div style="flex:1;min-width:0"><div style="font-family:var(--display);font-size:19px">${esc(f.display_name)}</div>
         <div class="muted">@${esc(f.username)} ${f.must_change_pw ? '· <span style="color:#B3242A">hasn\'t set a password yet</span>' : ""}</div>
-        <div style="display:flex;gap:8px;margin:6px 0"><span class="chip stud">${studHtml}${f.studs}</span><span class="chip">${coinHtml}${f.coins}</span><span class="muted" style="align-self:center">${f.studs * 100} EGP</span></div>
-        <div class="acts"><button class="btn sm" data-a="stud">+1 session stud</button><button class="btn sm y" data-a="coin">+ Gold coins</button><button class="btn sm w" data-a="hist">History</button><button class="btn sm w" data-a="pw">New password</button></div></div></div>`);
-      $("[data-a=stud]", c).onclick = async () => {
-        if (!(await confirmBox("Session stud", `Give <b>${esc(f.display_name)}</b> 1 session stud for finishing this session's task? That's +100 EGP salary.`, "Give 1 stud"))) return;
-        try { await API.grant(f.id, "stud", 1, "Session done"); toast("+1 stud"); refresh(); } catch (e) { toast(e.message); }
-      };
+        <div style="display:flex;gap:8px;margin:6px 0"><span class="chip">${coinHtml}${f.coins} coins</span></div>
+        <div class="acts"><button class="btn sm" data-a="coin">Give gold coins</button><button class="btn sm w" data-a="hist">History</button><button class="btn sm w" data-a="pw">New password</button></div></div></div>`);
       $("[data-a=coin]", c).onclick = () => {
         const fm = h(`<div><label class="field"><span>How many gold coins?</span><input class="input" name="n" type="number" min="1" max="50" value="2"></label>
           <label class="field"><span>For what? (they will see this)</span><input class="input" name="r" maxlength="120" placeholder="Came early and prepared the parts"></label>
           ${ADMIN ? '<p class="muted">Admin: type a negative number to fix a mistake.</p>' : ""}</div>`);
-        modal("Gold coins for " + f.display_name, fm, [{ t: "Cancel", cls: "w" }, { t: "Give coins", cls: "y", fn: async () => {
+        modal("Gold coins for " + f.display_name, fm, [{ t: "Cancel", cls: "w" }, { t: "Give coins", cls: "", fn: async () => {
           const n = parseInt($("[name=n]", fm).value, 10); if (!n) throw new Error("Type a number");
           await API.grant(f.id, "coin", n, $("[name=r]", fm).value.trim() || "Bonus"); toast((n > 0 ? "+" : "") + n + " coins"); refresh();
         } }]);
       };
       $("[data-a=hist]", c).onclick = async () => {
-        const L = await API.ledger(f.id);
-        modal("History: " + f.display_name, L.length ? `<table class="plain">${L.map((x) => `<tr><td>${x.kind === "stud" ? studHtml : coinHtml}</td><td><b>${x.delta > 0 ? "+" : ""}${x.delta}</b></td><td>${esc(x.reason)}</td><td class="muted">${ago(x.created_at)}</td></tr>`).join("")}</table>` : '<p class="muted">Nothing yet.</p>', [{ t: "Close", cls: "w" }], { noFocus: true });
+        const L = (await API.ledger(f.id)).filter((x) => x.kind === "coin");
+        modal("History: " + f.display_name, L.length ? `<table class="plain">${L.map((x) => `<tr><td>${coinHtml}</td><td><b>${x.delta > 0 ? "+" : ""}${x.delta}</b></td><td>${esc(x.reason)}</td><td class="muted">${ago(x.created_at)}</td></tr>`).join("")}</table>` : '<p class="muted">Nothing yet.</p>', [{ t: "Close", cls: "w" }], { noFocus: true });
       };
       $("[data-a=pw]", c).onclick = () => {
         const p = tempPw();
@@ -186,7 +182,7 @@
 
     // --- announcements ---
     const an = $("#ann");
-    an.innerHTML = `<label class="field"><span>New announcement for this team</span><textarea class="input" id="anb" maxlength="1000" placeholder="Bring 2 model ideas next session!"></textarea></label><button class="btn sm y" id="anp">Post 📣</button><div style="margin-top:12px">
+    an.innerHTML = `<label class="field"><span>New announcement for this team</span><textarea class="input" id="anb" maxlength="1000" placeholder="Bring 2 model ideas next session."></textarea></label><button class="btn sm y" id="anp">Post 📣</button><div style="margin-top:12px">
       ${T.ann.map((a) => `<div class="ann"><div class="meta">${ago(a.created_at)} <button class="link" data-del="${a.id}">delete</button></div>${esc(a.body)}</div>`).join("")}</div>`;
     $("#anp").onclick = async () => { const b = $("#anb").value.trim(); if (!b) return; try { await API.postAnnouncement(id, b); toast("Posted"); refresh(); } catch (e) { toast(e.message); } };
     $$("[data-del]", an).forEach((b) => (b.onclick = async () => { await API.deleteAnnouncement(+b.dataset.del); refresh(); }));
