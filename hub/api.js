@@ -121,7 +121,16 @@
       async sendMessage(team, kind, body) { const m = await api.me(); return ok(await sb.from("messages").insert({ team_id: team, author_id: m.id, kind, body }).select().single()); },
       async reply(id, text) { const m = await api.me(); return ok(await sb.from("messages").update({ reply: text, replied_by: m.id, replied_at: new Date().toISOString() }).eq("id", id).select().single()); },
       // store & rewards
-      async store() { return ok(await sb.from("store_items").select("*").eq("active", true).order("sort")); },
+      async store() { return api.parts(); },
+      async parts() { return ok(await sb.rpc("public_parts")) || []; },
+      async partsAll() { return ok(await sb.from("store_items").select("*").not("url", "is", null).order("slot").order("sort").order("name")); },
+      async addPart(row, blob) {
+        const path = `${row.slot}/${rid()}.png`;
+        ok(await sb.storage.from("parts").upload(path, blob, { contentType: "image/png" }));
+        const url = sb.storage.from("parts").getPublicUrl(path).data.publicUrl;
+        return ok(await sb.from("store_items").insert(Object.assign({ url, active: true, sort: Date.now() % 100000 }, row)).select().single());
+      },
+      async updatePart(id, patch) { return ok(await sb.from("store_items").update(patch).eq("id", id).select().single()); },
       async buy(item) { const left = ok(await sb.rpc("buy_item", { p_item: item })); await api.me(true); return left; },
       async setLook(look) { ok(await sb.rpc("set_look", { p_look: look })); return api.me(true); },
       async grant(user, kind, amount, reason) { return ok(await sb.rpc("grant_reward", { p_user: user, p_kind: kind, p_amount: amount, p_reason: reason })); },
@@ -133,16 +142,16 @@
   // ================= DEMO (in-browser, for previews & tests) =================
   function demoApi() {
     const KEY = "mf-hub-demo";
-    const look = (g, s) => G.FIG.randomLook(g, s);
+    const look = () => ({});
     const seed = () => {
       const teams = [1, 2, 3].map((id) => ({ id, slot: ["Sat 5:30", "Sat 5:30", "Sat 7:30"][id - 1], name: id === 3 ? "Glow Toucans" : null, name_public: id === 3, logo_url: null, logo_public: false,
         progress: [{ k: "Tree house", done: true }, { k: "3 animals", done: true }, { k: "Research device", done: true }, { k: "Lifting platform", done: false }, { k: "Team name", done: id === 3 }, { k: "Team logo", done: false }, { k: "Team model", done: false }, { k: "Team poster", done: false }] }));
       const P = (id, username, display_name, role, team_id, g, s, extra) => Object.assign({ id, username, display_name, role, team_id, must_change_pw: true, studs: 0, coins: 0, look: look(g, s), owned: [] }, extra || {});
-      const profiles = [P("u1", "zeyad", "Zeyad Tarek", "minifig", 1, 0, 3, { coins: 7, studs: 2 }), P("u2", "yousef", "Yousef Sayed", "minifig", 1, 0, 8, { must_change_pw: false }),
+      const profiles = [P("u1", "zeyad", "Zeyad Tarek", "minifig", 1, 0, 3, { coins: 7, studs: 2 }), P("a1", "marwa", "Mrs Marwa", "admin", null, 0, 4), P("u2", "yousef", "Yousef Sayed", "minifig", 1, 0, 8, { must_change_pw: false }),
         P("u3", "moussa", "Moussa George", "minifig", 2, 0, 11), P("u4", "marla", "Marla Remon", "minifig", 3, 1, 5), P("u5", "selena", "Selena Fady", "minifig", 3, 1, 9),
         P("c1", "tarif", "Tarif", "coach", null, 0, 1), P("c2", "beshoy", "Beshoy", "admin", null, 0, 2)];
       const T = (id, team_id, title, label, priority, status, details) => ({ id, team_id, title, label, priority, status: status || "todo", details: details || "", created_at: new Date(Date.now() - id * 6e4).toISOString() });
-      return { teams, profiles, pw: { u1: "tiger-123a", u2: "x", u3: "x", u4: "x", u5: "x", c1: "coach1", c2: "admin1" },
+      return { teams, profiles, pw: { u1: "tiger-123a", u2: "x", u3: "x", u4: "x", u5: "x", c1: "coach1", c2: "admin1", a1: "admin2" }, parts: [],
         team_coaches: [{ team_id: 1, coach_id: "c1" }, { team_id: 3, coach_id: "c1" }],
         kids: [[1, "Zeyad Tarek"], [1, "Ayman Mostafa"], [1, "Hana Basil"], [1, "Yamen Karim"], [1, "Yousef Sayed"], [2, "Moussa George"], [2, "Roshan Mahmoud"], [3, "Marla Remon"], [3, "Selena Fady"], [3, "Evan Beshoy"]].map(([t, n], i) => ({ id: i + 1, team_id: t, name: n })),
         tasks: [T(1, 1, "Find team model ideas", "model", 1, "doing", "Add ideas to the Library: photo, Rebrickable link, YouTube or text."), T(2, 1, "Build the lifting platform", "model", 1), T(3, 1, "Practice our Core Values share", "core values", 2), T(4, 1, "Sketch the poster", "poster", 3),
@@ -222,9 +231,17 @@
       async messages(team) { const ts = Array.isArray(team) ? team : [team]; return wait(db.messages.filter((m) => ts.includes(m.team_id) && see(m.team_id)).sort((a, b) => b.id - a.id)); },
       async sendMessage(team, kind, body) { need(role() === "minifig" && meRow().team_id === team); const m = { id: ++db.n, team_id: team, author_id: db.session, kind, body, reply: null, created_at: new Date().toISOString() }; db.messages.push(m); save(); return wait(m); },
       async reply(id, text) { const m = db.messages.find((x) => x.id === id); need(m && coaches(m.team_id)); m.reply = text; m.replied_at = new Date().toISOString(); save(); return wait(m); },
-      async store() { return wait(G.FIG.ITEMS); },
+      async store() { return api.parts(); },
+      async parts() { return wait((db.parts || []).filter((p) => p.active)); },
+      async partsAll() { return wait(db.parts || []); },
+      async addPart(row, blob) {
+        need(role() === "admin", "Admins only");
+        const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+        const p = Object.assign({ id: "p_" + (++db.n), url, active: true, sort: db.n }, row); (db.parts = db.parts || []).push(p); save(); return wait(p);
+      },
+      async updatePart(id, patch) { need(role() === "admin", "Admins only"); Object.assign(db.parts.find((p) => p.id === id), patch); save(); },
       async buy(item) {
-        const m = meRow(), it = G.FIG.ITEMS.find((i) => i.id === item);
+        const m = meRow(), it = (db.parts || []).find((i) => i.id === item && i.active);
         need(m && m.role === "minifig" && !m.must_change_pw, "Only Mini Figures can buy");
         need(it, "That item is not in the store"); need(!m.owned.includes(item), "You already have this!");
         need(m.coins - it.price >= 0, "Not enough gold coins yet");
@@ -232,7 +249,7 @@
       },
       async setLook(lk) {
         const m = meRow();
-        for (const [k, v] of Object.entries(lk)) { const it = G.FIG.ITEMS.find((i) => i.id === v); if (it && it.price > 0 && !m.owned.includes(v)) throw new Error("You don't own " + it.name); }
+        for (const [k, v] of Object.entries(lk)) { const it = (db.parts || []).find((i) => i.id === v); if (it && it.price > 0 && !m.owned.includes(v)) throw new Error("You don't own that piece"); }
         m.look = lk; save(); return wait(m);
       },
       async grant(user, kind, amount, reason) {

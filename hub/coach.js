@@ -3,16 +3,16 @@
   const { $, $$, esc, h, ago, toast, modal, confirmBox, teamTitle, progressBricks, progressPct, tower, nowNext, libraryGrid, openItem, addItemModal, coinHtml, studHtml, labelChip } = G.UI;
   const API = G.API, FIG = G.FIG;
   const root = $("#app");
-  let ME = null, C = {}, libTab = "idea";
+  let ME = null, C = {}, libTab = "idea", ADMIN = false;
 
   const tempPw = () => ["tiger", "panda", "toucan", "gecko", "otter", "comet", "robot", "brick"][Math.floor(Math.random() * 8)] + "-" + (100 + Math.floor(Math.random() * 900));
 
-  async function start(me) {
-    ME = me;
+  async function start(me, isAdmin) {
+    ME = me; ADMIN = !!isAdmin;
     root.innerHTML = `${API.demo ? '<div class="demo-banner">DEMO MODE — sample data <button type="button" id="demoReset">reset</button></div>' : ""}
-      <div class="shell" style="--side:0px"><header class="topbar"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix" style="display:block"><b style="font-family:var(--display);font-size:20px">Coach Room</b>
-      <span class="grow"></span><span class="muted">${esc(me.display_name)}${me.role === "admin" ? " · admin" : ""}</span><button class="btn sm w" id="so">Sign out</button></header>
-      <main class="main" id="view"></main></div>`;
+      <div class="shell" style="--side:0px"><header class="topbar"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix" style="display:block"><b style="font-family:var(--display);font-size:20px">${ADMIN ? "Admin Room" : "Coach Room"}</b>
+      <span class="grow"></span><span class="muted">${esc(me.display_name)}</span>${G.EGGS.sticker("firefly", "", 38)}<button class="btn sm w" id="so">Sign out</button></header>
+      <main class="main" id="view"></main><p class="foot"><a href="#" data-credits>Photo credits</a></p></div>`;
     const dr = $("#demoReset"); if (dr) dr.onclick = () => { API.reset(); location.reload(); };
     $("#so").onclick = async () => { await API.signOut(); location.reload(); };
     dashboard();
@@ -25,22 +25,23 @@
     const ids = teams.map((t) => t.id);
     const [figs, tasks, msgs] = await Promise.all([API.figs(null), ids.length ? API.tasks(ids) : [], ids.length ? API.messages(ids) : []]);
     C = { teams, figs, tasks, msgs };
-    v.innerHTML = `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px"><h2 style="flex:1">${ME.role === "admin" ? "All teams" : "My teams"} (${teams.length})</h2>
-      ${ME.role === "admin" ? '<button class="btn sm y" id="annAll">📣 Message everyone</button><button class="btn sm w" id="assign">👥 Coaches & teams</button>' : ""}</div>
+    v.innerHTML = `<div class="pagehead"><h2 style="flex:1">${ADMIN ? "All teams" : "My teams"} (${teams.length})</h2>
+      ${ADMIN ? '<button class="btn sm g" id="studio">🧱 Parts Studio</button><button class="btn sm y" id="annAll">📣 Message everyone</button><button class="btn sm w" id="assign">👥 Coaches & teams</button>' : ""}</div>
       ${teams.length ? "" : '<div class="card empty">No teams are assigned to you yet. Ask the admin.</div>'}<div class="cgrid" id="boxes"></div>`;
     const boxes = $("#boxes");
     teams.forEach((t) => {
       const tf = figs.filter((f) => f.team_id === t.id), tt = tasks.filter((x) => x.team_id === t.id);
       const { now, next } = nowNext(tt); const unread = msgs.filter((m) => m.team_id === t.id && !m.reply).length;
       const b = h(`<button class="tbox"><div class="th"><span class="num">${t.id}</span><div style="flex:1;min-width:0"><div style="font-family:var(--display);font-size:20px;line-height:1.1">${esc(teamTitle(t))}</div><div class="muted">${esc(t.slot)}</div></div>${unread ? `<span class="badge-n">${unread} new</span>` : ""}</div>
-        <div class="figs">${tf.length ? tf.map((f) => FIG.svg(f.look, { size: 74, label: f.display_name })).join("") : '<span class="muted" style="align-self:center;padding-bottom:20px">No Mini Figure yet</span>'}</div>
+        <div class="figs night">${tf.length ? tf.map((f) => FIG.render(f.look, { size: 74, seed: f.username, label: f.display_name })).join("") : '<span class="muted" style="align-self:center;padding-bottom:20px;color:#cde">No Mini Figure yet</span>'}</div>
         <div class="muted" style="font-size:13px">${tf.map((f) => esc(f.display_name)).join(" · ")}</div>
         <div class="pbar"><i style="width:${progressPct(t)}%"></i></div>
         <div class="line"><b>Now</b>${now ? esc(now.title) + (now.status === "doing" ? " 🔨" : "") : "—"}</div><div class="line"><b>Next</b>${next ? esc(next.title) : "—"}</div></button>`);
       b.onclick = () => teamPage(t.id);
       boxes.append(b);
     });
-    if (ME.role === "admin") {
+    if (ADMIN) {
+      $("#studio").onclick = () => G.STUDIO.open($("#view"), dashboard);
       $("#annAll").onclick = () => {
         const f = h('<div><label class="field"><span>Message to every Mini Figure</span><textarea class="input" name="b" maxlength="1000"></textarea></label></div>');
         modal("Announcement for everyone", f, [{ t: "Cancel", cls: "w" }, { t: "Post", cls: "g", fn: async () => { const b = $("[name=b]", f).value.trim(); if (!b) throw new Error("Write something first"); await API.postAnnouncement(null, b); toast("Posted to everyone"); } }]);
@@ -72,7 +73,7 @@
     if (!team) { v.innerHTML = '<div class="err">You can\'t open this team.</div>'; return; }
     const T = { team, figs, tasks, kids, ann: ann.filter((a) => a.team_id === id), msgs, lib };
     v.innerHTML = `<button class="btn sm w back" id="bk">◀ All teams</button>
-      <section class="teamhero studs sun card" style="padding:16px;margin-bottom:16px"><div class="row"><span class="num" style="font-family:var(--display);font-size:28px;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:4px 12px">${id}</span>
+      <section class="teamhero night card" style="padding:16px;margin-bottom:16px"><div class="row"><span class="num" style="font-family:var(--display);font-size:28px;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:4px 12px">${id}</span>
         ${team.logo_url ? `<img class="tlogo" src="${esc(team.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(team))}</span><span class="slot">📅 ${esc(team.slot)}</span></div></section>
       <div class="grid" style="gap:16px">
         <div class="card"><h3><span class="ic" style="background:#FFE8E9">⭐</span>Mini Figures</h3><div class="figrow" id="figs"></div></div>
@@ -94,7 +95,7 @@
     const fr = $("#figs");
     if (!figs.length) fr.innerHTML = '<p class="muted">No Mini Figure on this team yet.</p>';
     figs.forEach((f) => {
-      const c = h(`<div class="figcard">${FIG.svg(f.look, { size: 86, label: f.display_name })}<div style="flex:1;min-width:0"><div style="font-family:var(--display);font-size:19px">${esc(f.display_name)}</div>
+      const c = h(`<div class="figcard"><div class="night figbox">${FIG.render(f.look, { size: 80, seed: f.username, label: f.display_name })}</div><div style="flex:1;min-width:0"><div style="font-family:var(--display);font-size:19px">${esc(f.display_name)}</div>
         <div class="muted">@${esc(f.username)} ${f.must_change_pw ? '· <span style="color:#B3242A">hasn\'t set a password yet</span>' : ""}</div>
         <div style="display:flex;gap:8px;margin:6px 0"><span class="chip stud">${studHtml}${f.studs}</span><span class="chip">${coinHtml}${f.coins}</span><span class="muted" style="align-self:center">${f.studs * 100} EGP</span></div>
         <div class="acts"><button class="btn sm" data-a="stud">+1 session stud</button><button class="btn sm y" data-a="coin">+ Gold coins</button><button class="btn sm w" data-a="hist">History</button><button class="btn sm w" data-a="pw">New password</button></div></div></div>`);
@@ -105,7 +106,7 @@
       $("[data-a=coin]", c).onclick = () => {
         const fm = h(`<div><label class="field"><span>How many gold coins?</span><input class="input" name="n" type="number" min="1" max="50" value="2"></label>
           <label class="field"><span>For what? (they will see this)</span><input class="input" name="r" maxlength="120" placeholder="Came early and prepared the parts"></label>
-          ${ME.role === "admin" ? '<p class="muted">Admin: type a negative number to fix a mistake.</p>' : ""}</div>`);
+          ${ADMIN ? '<p class="muted">Admin: type a negative number to fix a mistake.</p>' : ""}</div>`);
         modal("Gold coins for " + f.display_name, fm, [{ t: "Cancel", cls: "w" }, { t: "Give coins", cls: "y", fn: async () => {
           const n = parseInt($("[name=n]", fm).value, 10); if (!n) throw new Error("Type a number");
           await API.grant(f.id, "coin", n, $("[name=r]", fm).value.trim() || "Bonus"); toast((n > 0 ? "+" : "") + n + " coins"); refresh();

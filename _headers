@@ -3,5 +3,5 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://rdgwklbzvmojxjcavnaz.supabase.co https://i.ytimg.com; connect-src 'self' https://rdgwklbzvmojxjcavnaz.supabase.co wss://rdgwklbzvmojxjcavnaz.supabase.co; frame-src https://www.youtube-nocookie.com; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://rdgwklbzvmojxjcavnaz.supabase.co https://i.ytimg.com https://commons.wikimedia.org https://upload.wikimedia.org; connect-src 'self' https://rdgwklbzvmojxjcavnaz.supabase.co wss://rdgwklbzvmojxjcavnaz.supabase.co; frame-src https://www.youtube-nocookie.com; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
   Cache-Control: no-cache

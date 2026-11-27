@@ -49,7 +49,7 @@
 
   // ---------- figures ----------
   function parade(figs, meId, size = 120) {
-    return figs.map((f) => `<div class="fig ${f.id === meId ? "me" : ""}">${G.FIG.svg(f.look, { size, label: f.display_name })}<span class="nm">${esc(String(f.display_name).split(" ")[0])}</span></div>`).join("");
+    return figs.map((f) => `<div class="fig ${f.id === meId ? "me" : ""}">${G.FIG.render(f.look, { size, seed: f.username, label: f.display_name })}<span class="nm">${esc(String(f.display_name).split(" ")[0])}</span></div>`).join("");
   }
 
   // ---------- progress ----------
