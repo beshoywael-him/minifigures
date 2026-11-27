@@ -33,7 +33,7 @@
       const tf = figs.filter((f) => f.team_id === t.id), tt = tasks.filter((x) => x.team_id === t.id);
       const { now, next } = nowNext(tt); const unread = msgs.filter((m) => m.team_id === t.id && !m.reply).length;
       const b = h(`<button class="tbox"><div class="th"><span class="num">${t.id}</span><div style="flex:1;min-width:0"><div style="font-family:var(--display);font-size:20px;line-height:1.1">${esc(teamTitle(t))}</div><div class="muted">${esc(t.slot)}</div></div>${unread ? `<span class="badge-n">${unread} new</span>` : ""}</div>
-        <div class="figs night">${tf.length ? tf.map((f) => FIG.render(f.look, { size: 74, seed: f.username, label: f.display_name })).join("") : '<span class="muted" style="align-self:center;padding-bottom:20px;color:#cde">No Mini Figure yet</span>'}</div>
+        <div class="figs lay" data-layer="emergent" ${G.UI.layerBg("emergent")}>${tf.length ? tf.map((f) => FIG.render(f.look, { size: 74, seed: f.username, label: f.display_name })).join("") : '<span class="muted" style="align-self:center;padding-bottom:20px;color:#cde">No Mini Figure yet</span>'}</div>
         <div class="muted" style="font-size:13px">${tf.map((f) => esc(f.display_name)).join(" · ")}</div>
         <div class="pbar"><i style="width:${progressPct(t)}%"></i></div>
         <div class="line"><b>Now</b>${now ? esc(now.title) + (now.status === "doing" ? " (working on it)" : "") : "—"}</div><div class="line"><b>Next</b>${next ? esc(next.title) : "—"}</div></button>`);
@@ -73,8 +73,8 @@
     if (!team) { v.innerHTML = '<div class="err">You can\'t open this team.</div>'; return; }
     const T = { team, figs, tasks, kids, ann: ann.filter((a) => a.team_id === id), msgs, lib };
     v.innerHTML = `<button class="btn sm w back" id="bk">◀ All teams</button>
-      <section class="teamhero night card" style="padding:16px;margin-bottom:16px"><div class="row"><span class="num">${id}</span>
-        ${team.logo_url ? `<img class="tlogo" src="${esc(team.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(team))}</span><span class="slot">📅 ${esc(team.slot)}</span></div></section>
+      <section class="teamhero lay card" data-layer="emergent" ${G.UI.layerBg("emergent")} style="padding:16px;margin-bottom:16px"><div class="row"><span class="num">${id}</span>
+        ${team.logo_url ? `<img class="tlogo" src="${esc(team.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(team))}</span><span class="slot">📅 ${esc(team.slot)}</span></div>${G.UI.layerTag("emergent", true)}</section>
       <div class="grid" style="gap:16px">
         <div class="card"><h3>Mini Figures</h3><div class="figrow" id="figs"></div></div>
         <div class="card"><h3 style="flex-wrap:wrap"><span style="flex:1">Task queue</span><button class="btn sm g" id="addT">+ Add task</button></h3>

@@ -47,6 +47,17 @@
   const labelChip = (l) => `<span class="lab ${LABEL_CLS[l] || "other"}">${esc(l)}</span>`;
   const teamTitle = (t) => (t && t.name ? t.name : "Team " + (t ? t.id : "?"));
 
+  // ---------- rainforest layers, top to bottom ----------
+  const LAYERS = {
+    emergent: { name: "Emergent layer", h: "up to 70 m", fact: "The tallest trees poke out above everything. Eagles nest up here." },
+    canopy: { name: "Canopy", h: "about 30 to 45 m", fact: "A roof of leaves. Most rainforest animals live here." },
+    understory: { name: "Understory", h: "under 15 m", fact: "Shady and warm. Only a little sunlight gets this far down." },
+    floor: { name: "Forest floor", h: "0 m", fact: "Dark and still. Fallen leaves become food for new plants." }
+  };
+  const LAYER_ORDER = ["emergent", "canopy", "understory", "floor"];
+  const layerTag = (k, short) => `<div class="ltag"><b>${LAYERS[k].name}</b><span>${LAYERS[k].h}</span>${short ? "" : `<em>${LAYERS[k].fact}</em>`}</div>`;
+  const layerBg = (k) => `style="--lp:url('${G.FIG.photo(k, 1600)}')"`;
+
   // ---------- figures ----------
   function parade(figs, meId, size = 120) {
     return figs.map((f) => `<div class="fig ${f.id === meId ? "me" : ""}">${G.FIG.render(f.look, { size, seed: f.username, label: f.display_name })}<span class="nm">${esc(String(f.display_name).split(" ")[0])}</span></div>`).join("");
@@ -81,7 +92,8 @@
     if (!L.groups.length) wrap.append(h(`<div class="empty">All tasks are done. ${o.coach ? "Add the next one." : "Ask your coach what's next."}</div>`));
     L.groups.forEach((g, i) => {
       const now = i === 0;
-      const lv = h(`<section class="level ${now ? "now" : "locked"}"><div class="lh"><span class="badge">${now ? "DO NOW" : "Level " + (i + 1)}</span>
+      const lk = LAYER_ORDER[Math.min(i, 3)];
+      const lv = h(`<section class="level lay ${now ? "now" : "locked"}" data-layer="${lk}" ${layerBg(lk)}><div class="lh"><span class="lname">${LAYERS[lk].name}</span><span class="badge">${now ? "DO NOW" : "Level " + (i + 1)}</span>
         <span class="muted">${now ? (g.tasks.length > 1 ? "Work on these together. Split them up." : "This is the most important task.") : "🔒 Opens when the level above is done"}</span></div><div class="tasks"></div></section>`);
       g.tasks.forEach((t) => $(".tasks", lv).append(taskCard(t, now, o)));
       wrap.append(lv);
@@ -175,5 +187,5 @@
 
   const coinHtml = '<span class="coin" aria-hidden="true">🪙</span>';
   const studHtml = '<span class="studi" aria-hidden="true"></span>';
-  G.UI = { $, $$, esc, h, ago, toast, modal, confirmBox, labelChip, teamTitle, parade, progressPct, progressBricks, levels, nowNext, tower, libraryGrid, openItem, addItemModal, coinHtml, studHtml };
+  G.UI = { LAYERS, LAYER_ORDER, layerTag, layerBg, $, $$, esc, h, ago, toast, modal, confirmBox, labelChip, teamTitle, parade, progressPct, progressBricks, levels, nowNext, tower, libraryGrid, openItem, addItemModal, coinHtml, studHtml };
 })(window);

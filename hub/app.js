@@ -17,16 +17,16 @@
 
   // ================= LOGIN =================
   async function showLogin() {
-    root.innerHTML = `${demoBanner()}<div class="login"><div class="hero night"><div class="wrap enter">
+    root.innerHTML = `${demoBanner()}<div class="login"><div class="hero lay" data-layer="emergent" ${G.UI.layerBg("emergent")}><div class="wrap enter">
       <img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><h1>${TITLE[MODE].replace("<br>", " ")}</h1><p class="tag">BIOGLOW season · Bottactix Academy</p>
-      <div class="parade" id="lp"></div>${EGGS.sticker("mushroom", "corner-l", 46)}</div></div>
+      <div class="parade" id="lp"></div>${EGGS.sticker("toucan", "corner-l", 46)}</div></div>
       <form class="card" id="lf" autocomplete="on" novalidate><h2 style="margin-bottom:14px">${MODE === "kid" ? "Sign in, Mini Figure" : MODE === "coach" ? "Coach sign in" : "Admin sign in"}</h2>
       <div class="err hidden" id="le"></div>
       <label class="field"><span>Username</span><input class="input" name="u" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
       <label class="field"><span>Password</span><input class="input" name="p" type="password" autocomplete="current-password" required></label>
       <button class="btn" style="width:100%" type="submit">Sign in</button>
       <p class="muted" style="text-align:center;margin:14px 0 0">Forgot your password? Ask your ${MODE === "kid" ? "coach" : "admin"} for a new one.</p></form>
-      <p class="foot"><a href="#" data-credits>Photos: Wikimedia Commons contributors</a></p></div>`;
+      <div class="floorband lay" data-layer="floor" ${G.UI.layerBg("floor")}><p class="foot"><a href="#" data-credits>Photos: Wikimedia Commons contributors</a></p></div></div>`;
     wireDemo();
     try {
       await loadParts();
@@ -44,7 +44,7 @@
   }
 
   async function showChangePw(me) {
-    root.innerHTML = `${demoBanner()}<div class="login"><div class="hero night" style="min-height:230px"><div class="wrap enter"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix">
+    root.innerHTML = `${demoBanner()}<div class="login"><div class="hero lay" data-layer="emergent" ${G.UI.layerBg("emergent")} style="min-height:230px"><div class="wrap enter"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix">
       <div class="parade">${FIG.render(me.look, { size: 110, seed: me.username })}</div></div></div>
       <form class="card" id="pf" novalidate><h2>Welcome, ${esc(me.display_name.split(" ")[0])}</h2>
       <p style="font-weight:700">First, make your <b>own secret password</b>. Don't share it with anyone${MODE === "kid" ? ", not even your teammates" : ""}.</p>
@@ -66,7 +66,7 @@
 
   function wrongPlace() {
     const msg = { kid: "This page is for Mini Figures. Coaches and admins have their own links.", coach: "This page is only for coaches. Admins have their own page.", admin: "This page is only for admins." }[MODE];
-    root.innerHTML = `<div class="login"><div class="hero night" style="min-height:200px"><div class="wrap enter"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><h1>Wrong page</h1></div></div>
+    root.innerHTML = `<div class="login"><div class="hero lay" data-layer="emergent" ${G.UI.layerBg("emergent")} style="min-height:200px"><div class="wrap enter"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><h1>Wrong page</h1></div></div>
       <div class="card" style="width:min(440px,calc(100% - 28px));margin:20px auto"><p style="font-weight:800">${msg}</p><button class="btn" id="so">Sign out</button></div></div>`;
     $("#so").onclick = async () => { await API.signOut(); boot(); };
   }
@@ -91,7 +91,7 @@
         <div class="wallet"><span class="chip" title="Gold coins (for the store)">${coinHtml}<span id="wc">${me.coins}</span></span></div>
         <button class="btn sm w" id="so" aria-label="Sign out" title="Sign out">🚪</button></header>
         <nav class="topnav">${nav()}</nav>
-        <section class="teamhero night" id="hero"></section><main class="main" id="view"></main></div>
+        <section class="teamhero lay" id="hero" data-layer="emergent" ${G.UI.layerBg("emergent")}></section><main class="main" id="view"></main></div>
       <nav class="bottomnav">${nav()}</nav>`;
     wireDemo();
     $$("[data-t]").forEach((b) => (b.onclick = () => go(b.dataset.t)));
@@ -99,7 +99,7 @@
   }
   function hero() {
     const t = D.team;
-    $("#hero").innerHTML = `<div class="wrap enter"><div class="row">${t && t.logo_url ? `<img class="tlogo" src="${esc(t.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(t))}</span>${t ? `<span class="slot">📅 ${esc(t.slot)}</span>` : ""}</div>
+    $("#hero").innerHTML = `<div class="wrap enter"><div class="row">${t && t.logo_url ? `<img class="tlogo" src="${esc(t.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(t))}</span>${t ? `<span class="slot">📅 ${esc(t.slot)}</span>` : ""}</div>${G.UI.layerTag("emergent", true)}
       <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 96 : 120)}</div>${EGGS.sticker("firefly", "corner-r", 44)}</div>`;
   }
   function wallet() { $("#wc").textContent = D.me.coins; }
@@ -108,34 +108,48 @@
     S.tab = tab;
     $$("[data-t]").forEach((b) => b.classList.toggle("on", b.dataset.t === tab));
     const v = $("#view"); v.innerHTML = '<div class="spinner"></div>';
+    const lk = { library: "canopy", store: "understory", ask: "floor" }[tab];
+    v.className = "main" + (tab === "home" ? " home" : lk ? " lay solo" : "");
+    if (lk) { v.dataset.layer = lk; v.style.setProperty("--lp", `url('${FIG.photo(lk, 1600)}')`); } else { delete v.dataset.layer; v.style.removeProperty("--lp"); }
     ({ home, tasks: tasksView, library, store, ask })[tab]().catch((e) => { v.innerHTML = `<div class="err">${esc(e.message)}</div>`; });
     scrollTo({ top: 0, behavior: "smooth" });
   }
   const head = (ic, title, extra = "") => `<h3><span style="flex:1">${title}</span>${extra}</h3>`;
 
-  // ---------- HOME ----------
+  // ---------- HOME: walk down the rainforest ----------
   async function home() {
-    const me = D.me, t = D.team;
+    const me = D.me, t = D.team, U = G.UI;
     const { now, next } = UI.nowNext(D.tasks);
     const v = $("#view");
-    v.innerHTML = `<div class="grid g3">
-      <div class="card acc-orange">${head("⭐", "Me")}<div class="mecard"><div class="big">${FIG.render(me.look, { size: 120, seed: me.username, label: me.display_name })}</div>
-        <div class="stats"><div style="font-family:var(--display);font-size:24px;line-height:1">${esc(me.display_name)}</div>
+    const band = (k, inner) => `<section class="layer lay" id="L-${k}" data-layer="${k}" ${U.layerBg(k)}>${U.layerTag(k)}${inner}</section>`;
+    v.innerHTML = band("canopy", `<div class="grid g2">
+      <div class="card">${head("", "Me")}<div class="mecard"><div class="big">${FIG.render(me.look, { size: 120, seed: me.username, label: me.display_name })}</div>
+        <div class="stats"><div class="who">${esc(me.display_name)}</div>
         <div class="stat">${coinHtml}<div><b>${me.coins}</b><div class="lbl">gold coins<br>for the store</div></div></div>
         <button class="btn sm" data-go="store">Dress up in the store</button></div></div></div>
-      <div class="card acc-blue">${head("👥", "My team")}
+      <div class="card">${head("", "My team")}
         <p style="margin:0 0 6px"><b>${esc(teamTitle(t))}</b> · ${esc(t ? t.slot : "")}</p>
         <p class="muted" style="margin:0 0 10px">Coach: <b>${esc(D.coaches.join(", ") || "—")}</b></p>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">${D.kids.map((k) => `<span class="pill">${esc(k.name.split(" ").slice(0, 2).join(" "))}</span>`).join("")}</div></div>
-      <div class="card acc-green">${head("🏗️", "Our build")}${progressBricks(t)}</div>
-      <div class="card acc-yellow">${head("🧱", "Do now")}
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${D.kids.map((k) => `<span class="pill">${esc(k.name.split(" ").slice(0, 2).join(" "))}</span>`).join("")}</div></div></div>
+      ${EGGS.sticker("toucan", "perch", 56)}`)
+    + band("understory", `<div class="grid g2">
+      <div class="card">${head("", "Do now")}
         ${now ? `<div class="task ${now.status}" style="margin-bottom:10px">${UI.labelChip(now.label)}<div class="tt">${esc(now.title)}</div></div>` : '<p class="muted">No tasks right now.</p>'}
         ${next ? `<p class="muted" style="margin:6px 0 10px">Next: <b>${esc(next.title)}</b></p>` : ""}<button class="btn sm w" data-go="tasks">Open the task tower</button></div>
-      <div class="card acc-pink" style="grid-column:1/-1">${head("📣", "Announcements")}
+      <div class="card">${head("", "Our build")}${progressBricks(t)}</div></div>
+      ${EGGS.sticker("frog", "perch", 52)}`)
+    + band("floor", `<div class="card">${head("", "Announcements")}
         ${D.ann.length ? D.ann.slice(0, 6).map((a) => `<div class="ann ${a.team_id == null ? "all" : ""}"><div class="meta">${a.team_id == null ? "For all Mini Figures" : "From your coach"} · ${ago(a.created_at)}</div>${esc(a.body)}</div>`).join("") : '<p class="muted">Nothing new.</p>'}</div>
-    </div>`;
+      ${EGGS.sticker("mushroom", "perch", 50)}<p class="foot"><a href="#" data-credits>Photos: Wikimedia Commons contributors</a></p>`)
+    + `<nav class="depth" aria-label="Rainforest layers">${["emergent", "canopy", "understory", "floor"].map((k) => `<a href="#${k === "emergent" ? "hero" : "L-" + k}" data-d="${k}">${U.LAYERS[k].name}</a>`).join("")}</nav>`;
     $$("[data-go]", v).forEach((b) => (b.onclick = () => go(b.dataset.go)));
-    EGGS.peekFrog(v);
+    // depth gauge: highlight the layer you are in
+    const links = $$(".depth a", v);
+    links.forEach((a) => (a.onclick = (e) => { e.preventDefault(); const el = document.querySelector(a.getAttribute("href")); if (el) el.scrollIntoView({ behavior: "smooth" }); }));
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) links.forEach((a) => a.classList.toggle("on", a.dataset.d === (x.target.dataset.layer || "emergent"))); }), { rootMargin: "-45% 0px -50% 0px" });
+      [$("#hero"), ...$$(".layer", v)].forEach((el) => el && io.observe(el));
+    }
   }
 
   // ---------- TASKS ----------
