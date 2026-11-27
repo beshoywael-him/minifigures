@@ -252,7 +252,7 @@
     if (me.must_change_pw) return showChangePw(me);
     if (COACH) { if (me.role === "minifig") return wrongPlace(me); return G.COACH.start(me); }
     if (me.role !== "minifig") return wrongPlace(me);
-    try { await loadAll(); } catch (e) { root.innerHTML = `<div class="main"><div class="err">${esc(e.message)}</div><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
+    try { await loadAll(); } catch (e) { root.innerHTML = `<div class="main"><div class="err">${esc(e.message)}</div><button class="btn" id="retry">Try again</button> <button class="btn w" id="so3">Sign out</button></div>`; $("#retry").onclick = () => location.reload(); $("#so3").onclick = async () => { await API.signOut(); boot(); }; return; }
     shell(); hero(); go(S.tab);
   }
   G.HUB = { boot, showLogin };
