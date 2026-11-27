@@ -351,3 +351,6 @@ body.glow .side .logo, body.glow .topbar .logo { background: #fff; border-radius
 /* layer photos win over the plain card and level grounds */
 .level.lay, .level.lay.locked, .level.lay.now, .card.lay, .main.lay { background: linear-gradient(180deg, var(--ov1), var(--ov2)), var(--lp, none) center / cover no-repeat, var(--lc); }
 .level.lay.now { box-shadow: 0 0 0 3px var(--p-accent); }
+
+.lay[data-layer=emergent] { background-position: center, center 70%, center; }
+.lay { scroll-margin-top: 112px; }

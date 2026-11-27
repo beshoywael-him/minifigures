@@ -17,7 +17,7 @@
     frog: { file: "Red eyed tree frog edit2.jpg", name: "Red-eyed tree frog" },
     toucan: { file: "Ramphastos sulfuratus -Belize Zoo-6a-2c.jpg", name: "Keel-billed toucan" },
     morpho: { file: "Morpho peleides 2.jpg", name: "Blue morpho butterfly" },
-    emergent: { file: "Afternoon Clouds over the Amazon Rainforest.jpg", name: "Emergent layer: clouds over the Amazon" },
+    emergent: { file: "Primary Rainforest (10623380025).jpg", name: "Emergent layer: primary rainforest under open sky" },
     canopy: { file: "Rainforest Canopy El Yunque National Forest.jpg", name: "Canopy: El Yunque National Forest" },
     understory: { file: "Chiapas Rainforest.jpg", name: "Understory: Chiapas rainforest" },
     floor: { file: "Buttress Roots St Lucia 0312.jpg", name: "Forest floor: buttress roots, St Lucia" }
