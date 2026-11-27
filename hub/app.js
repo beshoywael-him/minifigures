@@ -101,7 +101,7 @@
   function hero() {
     const t = D.team;
     $("#hero").innerHTML = `<div class="wrap enter"><div class="row">${t && t.logo_url ? `<img class="tlogo" src="${esc(t.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(t))}</span>${t ? `<span class="slot">📅 ${esc(t.slot)}</span>` : ""}</div>${G.UI.layerTag("emergent", true)}
-      <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 96 : 120)}</div>${EGGS.sticker("firefly", "corner-r", 44)}</div>${G.UI.bigword("emergent")}${G.UI.mascot("emergent")}`;
+      <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 96 : 120)}</div>${EGGS.sticker("firefly", "corner-r", 44)}</div>${G.UI.mascot("emergent")}`;
   }
   function wallet() { $("#wc").textContent = D.me.coins; }
 
@@ -112,7 +112,7 @@
     const lk = { library: "canopy", store: "understory", ask: "floor" }[tab];
     v.className = "main" + (tab === "home" ? " home" : lk ? " lay solo" : "");
     if (lk) v.dataset.layer = lk; else delete v.dataset.layer;
-    ({ home, tasks: tasksView, library, store, ask })[tab]().then(() => { if (lk) v.insertAdjacentHTML("afterbegin", G.UI.bigword(lk) + G.UI.mascot(lk, "solo-m")); }).catch((e) => { v.innerHTML = `<div class="err">${esc(e.message)}</div>`; });
+    ({ home, tasks: tasksView, library, store, ask })[tab]().then(() => { if (lk) v.insertAdjacentHTML("afterbegin", G.UI.mascot(lk, "solo-m")); }).catch((e) => { v.innerHTML = `<div class="err">${esc(e.message)}</div>`; });
     scrollTo({ top: 0, behavior: "smooth" });
   }
   const head = (ic, title, extra = "") => `<h3><span style="flex:1">${title}</span>${extra}</h3>`;
@@ -122,7 +122,7 @@
     const me = D.me, t = D.team, U = G.UI;
     const { now, next } = UI.nowNext(D.tasks);
     const v = $("#view");
-    const band = (k, inner) => `<section class="layer lay" id="L-${k}" data-layer="${k}">${U.bigword(k)}${U.mascot(k)}${U.layerTag(k)}${inner}</section>`;
+    const band = (k, inner) => `<section class="layer lay" id="L-${k}" data-layer="${k}">${U.mascot(k)}${U.layerTag(k)}${inner}</section>`;
     v.innerHTML = band("canopy", `<div class="grid g2">
       <div class="card">${head("", "Me")}<div class="mecard"><div class="big">${FIG.render(me.look, { size: 120, seed: me.username, label: me.display_name })}</div>
         <div class="stats"><div class="who">${esc(me.display_name)}</div>

@@ -340,3 +340,4 @@ body.glow .login { background: #082420; }
 body.glow .ltag span, body.glow .teamhero .slot, body.glow .teamhero .parade .fig .nm, body.glow .login .tag { background: #0F2A25; color: #E8FFF6; border-color: #39F3BB; }
 body.glow .teamhero .parade .fig.me .nm { background: #39F3BB; color: #04120F; }
 @media (max-width: 699px) { .teamhero .mascot { width: 104px; right: 8px; } .teamhero .parade { justify-content: flex-start; padding-left: 4px; } }
+.bigword { display: none; }
