@@ -76,8 +76,10 @@
       <li>Slide it into place on the figure, set a price (0 = free for everyone) and save.</li></ol>
       ${missing.length ? `<div class="err">To show real figures, add at least one <b>free</b> ${missing.map((s) => FIG.LABEL[s].toLowerCase().replace(/s$/, "")).join(", ")}. Until then kids see animal stickers.</div>` : '<div class="ok">Figures are live! Every kid has a free head, torso and legs.</div>'}
       <button class="btn" id="newP">Add a piece</button></div>
+      <div class="card" style="margin-bottom:16px" id="artcard"></div>
       <div id="plist"></div>`;
     $("#bk").onclick = back;
+    artCard($("#artcard"));
     $("#newP").onclick = () => editor(null, () => open(view, back));
     const pl = $("#plist");
     FIG.SLOTS.slice().reverse().forEach((s) => {
@@ -91,6 +93,27 @@
       });
       pl.append(sec);
     });
+  }
+
+  // Layer art: one 3D animal (or any picture) per rainforest layer, plus the sign-in picture
+  async function artCard(box) {
+    const art = await API.art(); G.UI.setArt(art);
+    const SLOTS_ART = [["hero", "Sign-in page"], ["emergent", "Emergent layer"], ["canopy", "Canopy"], ["understory", "Understory"], ["floor", "Forest floor"]];
+    box.innerHTML = `<h3>Layer art</h3><p style="margin-top:0">Put one 3D animal (or any picture) in each rainforest layer. PNGs with a see-through background look best; a plain white background is cut out for you.</p>
+      <div class="artgrid">${SLOTS_ART.map(([k, n]) => `<div class="artslot" data-layer="${k === "hero" ? "emergent" : k}"><div class="artpv">${art[k] ? `<img src="${esc(art[k])}" alt="">` : '<span>Empty</span>'}</div>
+        <b>${n}</b><div class="acts"><label class="btn sm" style="cursor:pointer">${art[k] ? "Change" : "Upload"}<input type="file" accept="image/*" data-k="${k}" hidden></label>${art[k] ? `<button class="btn sm w" data-x="${k}">Remove</button>` : ""}</div></div>`).join("")}</div>`;
+    $$("input[data-k]", box).forEach((inp) => (inp.onchange = () => {
+      const file = inp.files[0]; if (!file) return;
+      const im = new Image();
+      im.onload = () => {
+        const c = hasAlpha(im) ? asIs(im) : cutout(im, 38);
+        if (!c) { toast("Nothing left after cutting. Try a picture with a plainer background."); return; }
+        c.toBlob(async (b) => { try { await API.setArt(inp.dataset.k, b); toast("Saved"); artCard(box); } catch (e) { toast(e.message, 3500); } }, "image/png");
+      };
+      im.onerror = () => toast("This picture can't be opened. Try a JPG or PNG.");
+      im.src = URL.createObjectURL(file);
+    }));
+    $$("[data-x]", box).forEach((b) => (b.onclick = async () => { if (await confirmBox("Remove this picture?", "The layer will show without art.", "Remove", "r")) { await API.clearArt(b.dataset.x); artCard(box); } }));
   }
 
   function editor(part, done) {

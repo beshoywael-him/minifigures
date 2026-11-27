@@ -13,13 +13,13 @@
     return `<div class="demo-banner">DEMO MODE — sample data only. Try <b>${who}</b> <button type="button" id="demoReset">reset</button></div>`;
   }
   function wireDemo() { const b = $("#demoReset"); if (b) b.onclick = () => { API.reset(); location.reload(); }; }
-  async function loadParts() { try { FIG.setParts(await API.parts()); } catch (e) {} }
+  async function loadParts() { try { FIG.setParts(await API.parts()); } catch (e) {} try { G.UI.setArt(await API.art()); } catch (e) {} }
 
   // ================= LOGIN =================
   async function showLogin() {
     root.innerHTML = `${demoBanner()}<div class="login"><div class="hero lay" data-layer="emergent" ${G.UI.layerBg("emergent")}><div class="wrap enter">
       <img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><h1>${TITLE[MODE].replace("<br>", " ")}</h1><p class="tag">BIOGLOW season · Bottactix Academy</p>
-      <div class="parade" id="lp"></div>${EGGS.sticker("toucan", "corner-l", 46)}</div></div>
+      <div class="parade" id="lp"></div>${EGGS.sticker("toucan", "corner-l", 46)}</div><span class="heroart" id="ha"></span></div>
       <form class="card" id="lf" autocomplete="on" novalidate><h2 style="margin-bottom:14px">${MODE === "kid" ? "Sign in, Mini Figure" : MODE === "coach" ? "Coach sign in" : "Admin sign in"}</h2>
       <div class="err hidden" id="le"></div>
       <label class="field"><span>Username</span><input class="input" name="u" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
@@ -30,6 +30,7 @@
     wireDemo();
     try {
       await loadParts();
+      $("#ha").innerHTML = G.UI.mascot("hero") || G.UI.mascot("emergent");
       const looks = (await API.parade()).filter((l) => FIG.hasFigure(l)); const n = innerWidth < 600 ? 3 : innerWidth < 1000 ? 5 : 7;
       const list = looks.sort(() => Math.random() - 0.5).slice(0, n);
       $("#lp").innerHTML = list.map((l, i) => FIG.render(l, { size: innerWidth < 600 ? 84 : 110, seed: "p" + i + Math.random() })).join("");
@@ -100,7 +101,7 @@
   function hero() {
     const t = D.team;
     $("#hero").innerHTML = `<div class="wrap enter"><div class="row">${t && t.logo_url ? `<img class="tlogo" src="${esc(t.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(t))}</span>${t ? `<span class="slot">📅 ${esc(t.slot)}</span>` : ""}</div>${G.UI.layerTag("emergent", true)}
-      <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 96 : 120)}</div>${EGGS.sticker("firefly", "corner-r", 44)}</div>`;
+      <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 96 : 120)}</div>${EGGS.sticker("firefly", "corner-r", 44)}</div>${G.UI.bigword("emergent")}${G.UI.mascot("emergent")}`;
   }
   function wallet() { $("#wc").textContent = D.me.coins; }
 
@@ -110,8 +111,8 @@
     const v = $("#view"); v.innerHTML = '<div class="spinner"></div>';
     const lk = { library: "canopy", store: "understory", ask: "floor" }[tab];
     v.className = "main" + (tab === "home" ? " home" : lk ? " lay solo" : "");
-    if (lk) { v.dataset.layer = lk; v.style.setProperty("--lp", `url('${FIG.photo(lk, 1600)}')`); } else { delete v.dataset.layer; v.style.removeProperty("--lp"); }
-    ({ home, tasks: tasksView, library, store, ask })[tab]().catch((e) => { v.innerHTML = `<div class="err">${esc(e.message)}</div>`; });
+    if (lk) v.dataset.layer = lk; else delete v.dataset.layer;
+    ({ home, tasks: tasksView, library, store, ask })[tab]().then(() => { if (lk) v.insertAdjacentHTML("afterbegin", G.UI.bigword(lk) + G.UI.mascot(lk, "solo-m")); }).catch((e) => { v.innerHTML = `<div class="err">${esc(e.message)}</div>`; });
     scrollTo({ top: 0, behavior: "smooth" });
   }
   const head = (ic, title, extra = "") => `<h3><span style="flex:1">${title}</span>${extra}</h3>`;
@@ -121,7 +122,7 @@
     const me = D.me, t = D.team, U = G.UI;
     const { now, next } = UI.nowNext(D.tasks);
     const v = $("#view");
-    const band = (k, inner) => `<section class="layer lay" id="L-${k}" data-layer="${k}" ${U.layerBg(k)}>${U.layerTag(k)}${inner}</section>`;
+    const band = (k, inner) => `<section class="layer lay" id="L-${k}" data-layer="${k}">${U.bigword(k)}${U.mascot(k)}${U.layerTag(k)}${inner}</section>`;
     v.innerHTML = band("canopy", `<div class="grid g2">
       <div class="card">${head("", "Me")}<div class="mecard"><div class="big">${FIG.render(me.look, { size: 120, seed: me.username, label: me.display_name })}</div>
         <div class="stats"><div class="who">${esc(me.display_name)}</div>

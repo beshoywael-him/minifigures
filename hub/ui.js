@@ -56,7 +56,12 @@
   };
   const LAYER_ORDER = ["emergent", "canopy", "understory", "floor"];
   const layerTag = (k, short) => `<div class="ltag"><b>${LAYERS[k].name}</b><span>${LAYERS[k].h}</span>${short ? "" : `<em>${LAYERS[k].fact}</em>`}</div>`;
-  const layerBg = (k) => `style="--lp:url('${G.FIG.photo(k, 1600)}')"`;
+  const layerBg = () => "";               // layers are flat colour blocks now (no photo backgrounds)
+  // 3D animal art per layer, uploaded by admins (Parts Studio → Layer art)
+  let ART = {};
+  const setArt = (o) => { ART = o || {}; };
+  const mascot = (k, cls = "") => (ART[k] ? `<img class="mascot ${cls}" src="${esc(ART[k])}" alt="" aria-hidden="true">` : "");
+  const bigword = (k) => `<span class="bigword" aria-hidden="true">${LAYERS[k].name.replace(" layer", "")}</span>`;
 
   // ---------- figures ----------
   function parade(figs, meId, size = 120) {
@@ -187,5 +192,5 @@
 
   const coinHtml = '<span class="coin" aria-hidden="true">🪙</span>';
   const studHtml = '<span class="studi" aria-hidden="true"></span>';
-  G.UI = { LAYERS, LAYER_ORDER, layerTag, layerBg, $, $$, esc, h, ago, toast, modal, confirmBox, labelChip, teamTitle, parade, progressPct, progressBricks, levels, nowNext, tower, libraryGrid, openItem, addItemModal, coinHtml, studHtml };
+  G.UI = { LAYERS, LAYER_ORDER, layerTag, layerBg, setArt, mascot, bigword, get ART() { return ART; }, $, $$, esc, h, ago, toast, modal, confirmBox, labelChip, teamTitle, parade, progressPct, progressBricks, levels, nowNext, tower, libraryGrid, openItem, addItemModal, coinHtml, studHtml };
 })(window);

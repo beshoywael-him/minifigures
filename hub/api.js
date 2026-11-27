@@ -131,6 +131,15 @@
         return ok(await sb.from("store_items").insert(Object.assign({ url, active: true, sort: Date.now() % 100000 }, row)).select().single());
       },
       async updatePart(id, patch) { return ok(await sb.from("store_items").update(patch).eq("id", id).select().single()); },
+      async art() { const r = ok(await sb.from("site_art").select("key,url")) || []; const o = {}; r.forEach((x) => (o[x.key] = x.url)); return o; },
+      async setArt(key, blob) {
+        const path = `art/${key}-${rid()}.png`;
+        ok(await sb.storage.from("parts").upload(path, blob, { contentType: "image/png" }));
+        const url = sb.storage.from("parts").getPublicUrl(path).data.publicUrl;
+        ok(await sb.from("site_art").upsert({ key, url, updated_at: new Date().toISOString() }));
+        return url;
+      },
+      async clearArt(key) { ok(await sb.from("site_art").delete().eq("key", key)); },
       async buy(item) { const left = ok(await sb.rpc("buy_item", { p_item: item })); await api.me(true); return left; },
       async setLook(look) { ok(await sb.rpc("set_look", { p_look: look })); return api.me(true); },
       async grant(user, kind, amount, reason) { return ok(await sb.rpc("grant_reward", { p_user: user, p_kind: kind, p_amount: amount, p_reason: reason })); },
@@ -240,6 +249,13 @@
         const p = Object.assign({ id: "p_" + (++db.n), url, active: true, sort: db.n }, row); (db.parts = db.parts || []).push(p); save(); return wait(p);
       },
       async updatePart(id, patch) { need(role() === "admin", "Admins only"); Object.assign(db.parts.find((p) => p.id === id), patch); save(); },
+      async art() { return wait(Object.assign({}, db.art || {})); },
+      async setArt(key, blob) {
+        need(role() === "admin", "Admins only");
+        const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+        (db.art = db.art || {})[key] = url; save(); return url;
+      },
+      async clearArt(key) { need(role() === "admin", "Admins only"); if (db.art) delete db.art[key]; save(); },
       async buy(item) {
         const m = meRow(), it = (db.parts || []).find((i) => i.id === item && i.active);
         need(m && m.role === "minifig" && !m.must_change_pw, "Only Mini Figures can buy");
