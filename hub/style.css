@@ -341,3 +341,9 @@ body.glow .ltag span, body.glow .teamhero .slot, body.glow .teamhero .parade .fi
 body.glow .teamhero .parade .fig.me .nm { background: #39F3BB; color: #04120F; }
 @media (max-width: 699px) { .teamhero .mascot { width: 104px; right: 8px; } .teamhero .parade { justify-content: flex-start; padding-left: 4px; } }
 .bigword { display: none; }
+/* figures: the six minifig pictures */
+.mfx { display: inline-flex; align-items: flex-end; justify-content: center; flex: none; }
+.mfx img { height: 100%; width: auto; max-width: none; filter: drop-shadow(3px 4px 0 rgba(28,26,23,.35)); }
+.mecard .big { padding: 10px; min-height: 0; background: var(--sand); }
+.tbox .figs { background: var(--mango); }
+@media (max-width: 699px) { .mecard { flex-direction: column; align-items: stretch; } .mecard .big { min-width: 0; } }

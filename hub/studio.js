@@ -63,36 +63,9 @@
 
   let ALL = [];
   async function open(view, back) {
-    view.innerHTML = '<div class="spinner"></div>';
-    ALL = await API.partsAll();
-    const active = ALL.filter((p) => p.active);
-    FIG.setParts(active);
-    const missing = FIG.NEEDED.filter((s) => !active.some((p) => p.slot === s && p.price === 0));
-    view.innerHTML = `<button class="btn sm w back" id="bk">◀ All teams</button>
-      <div class="card" style="margin-bottom:16px"><h3>Parts Studio</h3>
-      <p style="font-weight:700;margin-top:0">Every piece you add here becomes part of the Mini Figures' figures and the store.</p>
-      <ol class="tips"><li>Use any picture of one piece: a photo you took, or one you saved. Choose the file, drop it in, or copy it and press Ctrl+V.</li>
-      <li>A PNG with a see-through background is used as it is. On a plain white or grey background, the background is cut out for you.</li>
-      <li>Slide it into place on the figure, set a price (0 = free for everyone) and save.</li></ol>
-      ${missing.length ? `<div class="err">To show real figures, add at least one <b>free</b> ${missing.map((s) => FIG.LABEL[s].toLowerCase().replace(/s$/, "")).join(", ")}. Until then kids see animal stickers.</div>` : '<div class="ok">Figures are live! Every kid has a free head, torso and legs.</div>'}
-      <button class="btn" id="newP">Add a piece</button></div>
-      <div class="card" style="margin-bottom:16px" id="artcard"></div>
-      <div id="plist"></div>`;
+    view.innerHTML = `<button class="btn sm w back" id="bk">◀ All teams</button><div class="card" id="artcard"></div>`;
     $("#bk").onclick = back;
     artCard($("#artcard"));
-    $("#newP").onclick = () => editor(null, () => open(view, back));
-    const pl = $("#plist");
-    FIG.SLOTS.slice().reverse().forEach((s) => {
-      const list = ALL.filter((p) => p.slot === s);
-      const sec = h(`<div class="card" style="margin-bottom:14px"><h3>${FIG.LABEL[s]} <span class="pill">${list.length}</span></h3><div class="items"></div></div>`);
-      if (!list.length) $(".items", sec).replaceWith(h('<p class="muted">None yet.</p>'));
-      list.forEach((p) => {
-        const b = h(`<button class="item ${p.active ? "" : "off"}">${FIG.partImg(p, 86)}<div class="nm">${esc(p.name)}</div>${p.price ? `<span class="price">${G.UI.coinHtml}${p.price}</span>` : '<span class="free">FREE</span>'}${p.active ? "" : '<span class="muted">hidden</span>'}</button>`);
-        b.onclick = () => editor(p, () => open(view, back));
-        $(".items", sec).append(b);
-      });
-      pl.append(sec);
-    });
   }
 
   // Layer art: one 3D animal (or any picture) per rainforest layer, plus the sign-in picture

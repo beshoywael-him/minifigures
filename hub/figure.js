@@ -39,22 +39,16 @@
   const hash = (s) => { let h = 0; for (const c of String(s || "")) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-  // o: {size, seed, label, slotOnly}
+  // Each Mini Figure is one of six minifig pictures (backgrounds removed), stored in look.fig.
+  const FIGS = ["bunny", "butterfly", "croc", "lion", "monkey", "parrot"];
+  const figOf = (look, seed) => (look && FIGS.includes(look.fig) ? look.fig : FIGS[hash(seed || "x") % FIGS.length]);
   function render(look, o = {}) {
-    const size = o.size || 140, W = size, H = Math.round(size * 1.45);
-    const r = resolve(look);
-    if (!NEEDED.every((s) => r[s])) {
-      const a = ANIMALS[hash(o.seed) % ANIMALS.length];
-      return `<span class="mf-animal" style="width:${Math.round(size * 0.82)}px;height:${Math.round(size * 0.82)}px" role="img" aria-label="${esc(o.label || PHOTOS[a].name)}"><img src="${photo(a, 300)}" alt="" loading="lazy"></span>`;
-    }
-    const imgs = SLOTS.filter((s) => r[s]).map((s, i) => {
-      const f = Object.assign({}, FIT[s], r[s].fit || {});
-      return `<img class="mf-p" alt="" src="${esc(r[s].url)}" style="width:${(f.w * W).toFixed(1)}px;left:${(W / 2 + f.x * W).toFixed(1)}px;top:${(f.y * H).toFixed(1)}px;z-index:${i + 1}" loading="lazy">`;
-    }).join("");
-    return `<span class="mf" style="width:${W}px;height:${H}px" role="img" aria-label="${esc(o.label || "Mini Figure")}">${imgs}</span>`;
+    const size = o.size || 140, H = Math.round(size * 1.05);
+    const f = figOf(look, o.seed);
+    return `<span class="mfx" style="height:${H}px" role="img" aria-label="${esc(o.label || "Mini Figure")}"><img src="${G.HUB_BASE || ""}figs/${f}.png" alt="" loading="lazy"></span>`;
   }
   // One part on its own (store shelf, studio list)
   function partImg(p, size = 90) { return `<span class="mf-part" style="width:${size}px;height:${size}px"><img src="${esc(p.url)}" alt="${esc(p.name)}" loading="lazy"></span>`; }
 
-  G.FIG = { SLOTS, NEEDED, FIT, LABEL, PHOTOS, photo, photoPage, setParts, defaults, resolve, hasFigure, render, partImg, get parts() { return parts; } };
+  G.FIG = { FIGS, figOf, SLOTS, NEEDED, FIT, LABEL, PHOTOS, photo, photoPage, setParts, defaults, resolve, hasFigure, render, partImg, get parts() { return parts; } };
 })(window);

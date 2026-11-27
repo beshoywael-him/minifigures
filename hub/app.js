@@ -31,7 +31,7 @@
     try {
       await loadParts();
       $("#ha").innerHTML = G.UI.mascot("hero") || G.UI.mascot("emergent");
-      const looks = (await API.parade()).filter((l) => FIG.hasFigure(l)); const n = innerWidth < 600 ? 3 : innerWidth < 1000 ? 5 : 7;
+      const looks = await API.parade(); const n = innerWidth < 600 ? 3 : innerWidth < 1000 ? 5 : 7;
       const list = looks.sort(() => Math.random() - 0.5).slice(0, n);
       $("#lp").innerHTML = list.map((l, i) => FIG.render(l, { size: innerWidth < 600 ? 84 : 110, seed: "p" + i + Math.random() })).join("");
     } catch (e) {}
@@ -73,7 +73,7 @@
   }
 
   // ================= KID APP =================
-  const TABS = [["home", "🏠", "Home"], ["tasks", "🧱", "Tasks"], ["library", "📚", "Library"], ["store", "🛍️", "Store"], ["ask", "💬", "Ask"]];
+  const TABS = [["home", "🏠", "Home"], ["tasks", "🧱", "Tasks"], ["library", "📚", "Library"], ["ask", "💬", "Ask"]];
   let D = {};
 
   async function loadAll() {
@@ -89,7 +89,6 @@
     root.innerHTML = `${demoBanner()}<aside class="side"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix">${nav()}
       <div class="grow"></div><a href="#" class="muted credit" data-credits>Photos: Wikimedia Commons</a><button class="navbtn" id="so2"><span class="ni" aria-hidden="true">🚪</span>Sign out</button></aside>
       <div class="shell"><header class="topbar"><img class="logo" src="${G.HUB_BASE}logo.png" alt="Bottactix"><span class="uname" style="font-weight:900">${esc(me.display_name)}</span><span class="grow"></span>
-        <div class="wallet"><span class="chip" title="Gold coins (for the store)">${coinHtml}<span id="wc">${me.coins}</span></span></div>
         <button class="btn sm w" id="so" aria-label="Sign out" title="Sign out">🚪</button></header>
         <nav class="topnav">${nav()}</nav>
         <section class="teamhero lay" id="hero" data-layer="emergent" ${G.UI.layerBg("emergent")}></section><main class="main" id="view"></main></div>
@@ -101,18 +100,18 @@
   function hero() {
     const t = D.team;
     $("#hero").innerHTML = `<div class="wrap enter"><div class="row">${t && t.logo_url ? `<img class="tlogo" src="${esc(t.logo_url)}" alt="">` : ""}<span class="tname">${esc(teamTitle(t))}</span>${t ? `<span class="slot">📅 ${esc(t.slot)}</span>` : ""}</div>${G.UI.layerTag("emergent", true)}
-      <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 96 : 120)}</div>${EGGS.sticker("firefly", "corner-r", 44)}</div>${G.UI.mascot("emergent")}`;
+      <div class="parade">${parade(D.figs, D.me.id, innerWidth < 600 ? 120 : 170)}</div>${EGGS.sticker("firefly", "corner-r", 44)}</div>${G.UI.mascot("emergent")}`;
   }
-  function wallet() { $("#wc").textContent = D.me.coins; }
+  function wallet() {}
 
   function go(tab) {
     S.tab = tab;
     $$("[data-t]").forEach((b) => b.classList.toggle("on", b.dataset.t === tab));
     const v = $("#view"); v.innerHTML = '<div class="spinner"></div>';
-    const lk = { library: "canopy", store: "understory", ask: "floor" }[tab];
+    const lk = { library: "canopy", ask: "floor" }[tab];
     v.className = "main" + (tab === "home" ? " home" : lk ? " lay solo" : "");
     if (lk) v.dataset.layer = lk; else delete v.dataset.layer;
-    ({ home, tasks: tasksView, library, store, ask })[tab]().then(() => { if (lk) v.insertAdjacentHTML("afterbegin", G.UI.mascot(lk, "solo-m")); }).catch((e) => { v.innerHTML = `<div class="err">${esc(e.message)}</div>`; });
+    ({ home, tasks: tasksView, library, ask })[tab]().then(() => { if (lk) v.insertAdjacentHTML("afterbegin", G.UI.mascot(lk, "solo-m")); }).catch((e) => { v.innerHTML = `<div class="err">${esc(e.message)}</div>`; });
     scrollTo({ top: 0, behavior: "smooth" });
   }
   const head = (ic, title, extra = "") => `<h3><span style="flex:1">${title}</span>${extra}</h3>`;
@@ -126,8 +125,7 @@
     v.innerHTML = band("canopy", `<div class="grid g2">
       <div class="card">${head("", "Me")}<div class="mecard"><div class="big">${FIG.render(me.look, { size: 120, seed: me.username, label: me.display_name })}</div>
         <div class="stats"><div class="who">${esc(me.display_name)}</div>
-        <div class="stat">${coinHtml}<div><b>${me.coins}</b><div class="lbl">gold coins<br>for the store</div></div></div>
-        <button class="btn sm" data-go="store">Dress up in the store</button></div></div></div>
+        <div class="stat"><div><b>${esc(teamTitle(t))}</b><div class="lbl">Mini Figure · team leader</div></div></div></div></div></div>
       <div class="card">${head("", "My team")}
         <p style="margin:0 0 6px"><b>${esc(teamTitle(t))}</b> · ${esc(t ? t.slot : "")}</p>
         <p class="muted" style="margin:0 0 10px">Coach: <b>${esc(D.coaches.join(", ") || "—")}</b></p>
@@ -191,62 +189,6 @@
     $$("[data-l]", v).forEach((b) => (b.onclick = () => { S.libTab = b.dataset.l; library(); }));
     v.append(await libraryGrid(list, (it, url) => openItem(it, url, it.added_by === D.me.id, async (x) => { await API.deleteLibrary(x); toast("Deleted"); library(); })));
     const add = $("#addL"); if (add) add.onclick = () => addItemModal(D.me.team_id, S.libTab, library);
-  }
-
-  // ---------- STORE ----------
-  const SHELF = [["head", "😀 Faces"], ["hair", "💇 Hair"], ["hat", "🧢 Hats"], ["torso", "👕 Torsos"], ["legs", "👖 Legs"], ["acc", "🎒 Extras"]];
-  const LOOK_KEYS = ["head", "hair", "hat", "torso", "legs", "acc"];
-  let draft = null;
-  const pick = (o) => { const r = {}; LOOK_KEYS.forEach((k) => { if (o && o[k]) r[k] = o[k]; }); return r; };
-  async function store() {
-    await loadParts();
-    const me = D.me; if (!draft) draft = Object.assign(FIG.defaults(), pick(me.look));
-    const v = $("#view");
-    const dirty = JSON.stringify(pick(draft)) !== JSON.stringify(pick(Object.assign(FIG.defaults(), pick(me.look))));
-    const any = FIG.parts.length > 0;
-    v.innerHTML = `<div class="pagehead"><h2 style="flex:1">Minifig store</h2>${EGGS.sticker("mushroom", "", 46)}</div>
-      <div class="storewrap"><div class="mirror"><div class="card"><div class="stage night">${FIG.render(draft, { size: 170, seed: me.username })}<div class="floor"></div></div>
-      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px"><span class="chip">${coinHtml}${me.coins} coins</span></div>
-      <button class="btn g" id="saveL" style="width:100%" ${dirty ? "" : "disabled"}>${dirty ? "Save my look" : "Looking good"}</button>
-      ${dirty ? '<button class="link" id="undoL">Undo changes</button>' : ""}</div></div>
-      <div><div class="tabs">${SHELF.map(([k, t]) => `<button class="tab ${S.storeTab === k ? "on" : ""}" data-s="${k}">${t}</button>`).join("")}</div><div id="shelf"></div></div></div>`;
-    $$("[data-s]", v).forEach((b) => (b.onclick = () => { S.storeTab = b.dataset.s; store(); }));
-    $("#saveL").onclick = async () => { try { D.me = await API.setLook(pick(draft)); draft = null; toast("Look saved"); D.figs = await API.figs(D.me.team_id); hero(); store(); } catch (e) { toast(e.message, 3500); } };
-    const u = $("#undoL"); if (u) u.onclick = () => { draft = null; store(); };
-    const shelf = $("#shelf");
-    if (!any) { shelf.innerHTML = `<div class="card empty">New LEGO pieces are on the way.<br>Your coaches are adding them now.</div>`; return; }
-    const items = FIG.parts.filter((i) => i.slot === S.storeTab);
-    const g = h('<div class="items"></div>');
-    if (["hair", "hat", "acc"].includes(S.storeTab)) {
-      const none = h(`<button class="item ${!draft[S.storeTab] || draft[S.storeTab] === "none" ? "on" : ""}"><span class="mf-part" style="width:86px;height:86px;font-size:40px;display:grid;place-items:center">🚫</span><div class="nm">None</div><span class="free">Take off</span></button>`);
-      none.onclick = () => { draft[S.storeTab] = "none"; store(); }; g.append(none);
-    }
-    if (!items.length) g.append(h('<p class="muted" style="grid-column:1/-1">Nothing here yet. Check back soon.</p>'));
-    items.forEach((it) => {
-      const owned = it.price === 0 || me.owned.includes(it.id);
-      const b = h(`<button class="item ${draft[it.slot] === it.id ? "on" : ""} ${!owned && me.coins < it.price ? "cant" : ""}">${FIG.partImg(it, 86)}
-        <div class="nm">${esc(it.name)}</div>${it.price === 0 ? '<span class="free">FREE</span>' : owned ? '<span class="own">✓ Yours</span>' : `<span class="price">${coinHtml}${it.price}</span>`}</button>`);
-      b.onclick = () => (owned ? wear(it) : buy(it));
-      g.append(b);
-    });
-    shelf.append(g);
-  }
-  function wear(it) { draft[it.slot] = draft[it.slot] === it.id && ["hair", "hat", "acc"].includes(it.slot) ? "none" : it.id; store(); }
-  async function buy(it) {
-    const me = D.me, left = me.coins - it.price;
-    const look = Object.assign({}, draft, { [it.slot]: it.id });
-    if (left < 0) {
-      modal("Not enough coins yet", `<div style="text-align:center">${FIG.partImg(it, 130)}<p style="font-weight:800">${esc(it.name)} costs <b>${it.price}</b> gold coins. You have <b>${me.coins}</b>.<br>Keep leading your team and your coach will give you more.</p></div>`, [{ t: "OK", cls: "" }], { noFocus: true });
-      return;
-    }
-    modal("Buy " + it.name + "?", `<div style="text-align:center"><div class="stage night" style="display:inline-block;padding:10px 20px 0;border-radius:20px">${FIG.render(look, { size: 120, seed: me.username })}</div>
-      <p style="font-weight:800;font-size:18px">It costs <span class="chip">${coinHtml}${it.price}</span><br>You will have <b>${left}</b> coins left.</p>
-      <p class="err" style="font-size:15px">You can't give it back after you buy it.</p></div>`,
-      [{ t: "No, wait", cls: "w" }, { t: "Buy it", cls: "g", fn: async () => {
-        await API.buy(it.id); D.me = await API.me(true); draft[it.slot] = it.id; wallet();
-        try { D.me = await API.setLook(pick(draft)); draft = null; D.figs = await API.figs(D.me.team_id); hero(); } catch (e) {}
-        toast("It's yours now"); store();
-      } }], { noFocus: true });
   }
 
   // ---------- ASK ----------

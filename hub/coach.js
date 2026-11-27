@@ -26,7 +26,7 @@
     const [figs, tasks, msgs] = await Promise.all([API.figs(null), ids.length ? API.tasks(ids) : [], ids.length ? API.messages(ids) : []]);
     C = { teams, figs, tasks, msgs };
     v.innerHTML = `<div class="pagehead"><h2 style="flex:1">${ADMIN ? "All teams" : "My teams"} (${teams.length})</h2>
-      ${ADMIN ? '<button class="btn sm" id="studio">Parts Studio</button><button class="btn sm w" id="annAll">Message everyone</button><button class="btn sm w" id="assign">Coaches & teams</button>' : ""}</div>
+      ${ADMIN ? '<button class="btn sm" id="studio">Layer art</button><button class="btn sm w" id="annAll">Message everyone</button><button class="btn sm w" id="assign">Coaches & teams</button>' : ""}</div>
       ${teams.length ? "" : '<div class="card empty">No teams are assigned to you yet. Ask the admin.</div>'}<div class="cgrid" id="boxes"></div>`;
     const boxes = $("#boxes");
     teams.forEach((t) => {
@@ -97,21 +97,7 @@
     figs.forEach((f) => {
       const c = h(`<div class="figcard"><div class="night figbox">${FIG.render(f.look, { size: 80, seed: f.username, label: f.display_name })}</div><div style="flex:1;min-width:0"><div style="font-family:var(--display);font-size:19px">${esc(f.display_name)}</div>
         <div class="muted">@${esc(f.username)} ${f.must_change_pw ? '· <span style="color:#B3242A">hasn\'t set a password yet</span>' : ""}</div>
-        <div style="display:flex;gap:8px;margin:6px 0"><span class="chip">${coinHtml}${f.coins} coins</span></div>
-        <div class="acts"><button class="btn sm" data-a="coin">Give gold coins</button><button class="btn sm w" data-a="hist">History</button><button class="btn sm w" data-a="pw">New password</button></div></div></div>`);
-      $("[data-a=coin]", c).onclick = () => {
-        const fm = h(`<div><label class="field"><span>How many gold coins?</span><input class="input" name="n" type="number" min="1" max="50" value="2"></label>
-          <label class="field"><span>For what? (they will see this)</span><input class="input" name="r" maxlength="120" placeholder="Came early and prepared the parts"></label>
-          ${ADMIN ? '<p class="muted">Admin: type a negative number to fix a mistake.</p>' : ""}</div>`);
-        modal("Gold coins for " + f.display_name, fm, [{ t: "Cancel", cls: "w" }, { t: "Give coins", cls: "", fn: async () => {
-          const n = parseInt($("[name=n]", fm).value, 10); if (!n) throw new Error("Type a number");
-          await API.grant(f.id, "coin", n, $("[name=r]", fm).value.trim() || "Bonus"); toast((n > 0 ? "+" : "") + n + " coins"); refresh();
-        } }]);
-      };
-      $("[data-a=hist]", c).onclick = async () => {
-        const L = (await API.ledger(f.id)).filter((x) => x.kind === "coin");
-        modal("History: " + f.display_name, L.length ? `<table class="plain">${L.map((x) => `<tr><td>${coinHtml}</td><td><b>${x.delta > 0 ? "+" : ""}${x.delta}</b></td><td>${esc(x.reason)}</td><td class="muted">${ago(x.created_at)}</td></tr>`).join("")}</table>` : '<p class="muted">Nothing yet.</p>', [{ t: "Close", cls: "w" }], { noFocus: true });
-      };
+        <div class="acts" style="margin-top:6px"><button class="btn sm w" data-a="pw">New password</button></div></div></div>`);
       $("[data-a=pw]", c).onclick = () => {
         const p = tempPw();
         const fm = h(`<div><p>Give <b>${esc(f.display_name)}</b> a new temporary password. They will have to change it when they sign in.</p><label class="field"><span>Temporary password</span><input class="input" name="p" value="${p}"></label></div>`);
