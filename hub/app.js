@@ -12,6 +12,15 @@
     const who = MODE === "kid" ? "zeyad / tiger-123a" : MODE === "coach" ? "tarif / coach1" : "marwa / admin2";
     return `<div class="demo-banner">DEMO MODE — sample data only. Try <b>${who}</b> <button type="button" id="demoReset">reset</button></div>`;
   }
+  function pwToggles(root) {
+    $$('input[type=password]', root).forEach((inp) => {
+      const wrap = document.createElement("span"); wrap.className = "pwwrap"; inp.replaceWith(wrap); wrap.append(inp);
+      const b = document.createElement("button"); b.type = "button"; b.className = "pwt"; b.textContent = "Show"; b.setAttribute("aria-label", "Show password"); b.setAttribute("aria-pressed", "false");
+      b.onclick = () => { const on = inp.type === "password"; inp.type = on ? "text" : "password"; b.textContent = on ? "Hide" : "Show"; b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Hide password" : "Show password"); inp.focus(); };
+      wrap.append(b);
+    });
+  }
+
   function wireDemo() { const b = $("#demoReset"); if (b) b.onclick = () => { API.reset(); location.reload(); }; }
   async function loadParts() { try { FIG.setParts(await API.parts()); } catch (e) {} try { G.UI.setArt(await API.art()); } catch (e) {} }
 
@@ -27,13 +36,13 @@
       <button class="btn" style="width:100%" type="submit">Sign in</button>
       <p class="muted" style="text-align:center;margin:14px 0 0">Forgot your password? Ask your ${MODE === "kid" ? "coach" : "admin"} for a new one.</p></form>
       <div class="floorband lay" data-layer="floor" ${G.UI.layerBg("floor")}><p class="foot"><a href="#" data-credits>Photos: Wikimedia Commons contributors</a></p></div></div>`;
-    wireDemo();
+    wireDemo(); pwToggles(document);
     try {
       await loadParts();
       $("#ha").innerHTML = G.UI.mascot("hero") || G.UI.mascot("emergent");
-      const looks = await API.parade(); const n = innerWidth < 600 ? 3 : innerWidth < 1000 ? 5 : 7;
-      const list = looks.sort(() => Math.random() - 0.5).slice(0, n);
-      $("#lp").innerHTML = list.map((l, i) => FIG.render(l, { size: innerWidth < 600 ? 84 : 110, seed: "p" + i + Math.random() })).join("");
+      // every figure design once, always in the same order
+      const sz = innerWidth < 600 ? 50 : innerWidth < 1000 ? 80 : 110;
+      $("#lp").innerHTML = FIG.FIGS.map((f) => FIG.render({ fig: f }, { size: sz, label: f })).join("");
     } catch (e) {}
     $("#lf").onsubmit = async (e) => {
       e.preventDefault(); const f = e.target, err = $("#le"); err.classList.add("hidden");
@@ -54,7 +63,7 @@
       <label class="field"><span>Type it again</span><input class="input" name="b" type="password" autocomplete="new-password" required></label>
       <button class="btn g" style="width:100%" type="submit">Save my password</button>
       <button class="link" type="button" id="so" style="display:block;margin:10px auto 0">Sign out</button></form></div>`;
-    wireDemo();
+    wireDemo(); pwToggles(document);
     $("#so").onclick = async () => { await API.signOut(); boot(); };
     $("#pf").onsubmit = async (e) => {
       e.preventDefault(); const f = e.target, err = $("#pe"); err.classList.add("hidden");
